@@ -113,3 +113,7 @@ Dla budżetu dwóch osób największe ryzyko limitów to zwykle baza 500 MB przy
 - Cele: tworzenie celów, ręczne wpłaty, transakcja oszczędnościowa i prognoza.
 - Analityka: zakresy, przychody vs wydatki, oszczędności, heatmap, statystyki, autorzy, top transakcje, trendy, forecast, burn rate.
 - Eksport/import: CSV server-side, PDF server-side, import CSV z mapowaniem nazw kolumn.
+
+## Roadmapa
+
+Pelna lista rzeczy do poprawy i zrobienia jest w [ROADMAP.md](./ROADMAP.md). Najwazniejszy kolejny kierunek to integracja z realnymi transakcjami z konta przez PSD2/Open Banking albo dopracowany import CSV z banku.
