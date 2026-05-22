@@ -1,8 +1,12 @@
 import { PrismaClient, TransactionType } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 import { addDays, addMonths, startOfMonth, subMonths } from "date-fns";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/postgres",
+});
+const prisma = new PrismaClient({ adapter });
 
 const expenseCategories = [
   ["Jedzenie", "#f97316", "Utensils"],
