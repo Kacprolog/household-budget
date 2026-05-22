@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   });
 
   const rows = [
-    ["data", "typ", "kwota", "kategoria", "metoda", "autor", "opis"],
+    ["data", "typ", "kwota", "kategoria", "metoda", "autor", "zrodlo", "externalId", "opis"],
     ...transactions.map((item) => [
       item.date.toISOString().slice(0, 10),
       item.type,
@@ -28,6 +28,8 @@ export async function GET(request: NextRequest) {
       item.category.name,
       item.paymentMethod.name,
       item.addedBy.displayName,
+      item.source,
+      item.externalId ?? "",
       item.description ?? "",
     ]),
   ];

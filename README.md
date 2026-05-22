@@ -112,7 +112,8 @@ Dla budżetu dwóch osób największe ryzyko limitów to zwykle baza 500 MB przy
 - Budżety: limity miesięczne per kategoria i progress bars.
 - Cele: tworzenie celów, ręczne wpłaty, transakcja oszczędnościowa i prognoza.
 - Analityka: zakresy, przychody vs wydatki, oszczędności, heatmap, statystyki, autorzy, top transakcje, trendy, forecast, burn rate.
-- Eksport/import: CSV server-side, PDF server-side, import CSV z mapowaniem nazw kolumn.
+- Eksport/import: CSV server-side, PDF server-side, import CSV z profilami bankow i deduplikacja.
+- Bank sync: fundament danych i ekran **Ustawienia -> Banki** pod PSD2/Open Banking.
 
 ## Roadmapa
 

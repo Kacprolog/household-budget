@@ -269,6 +269,64 @@ export async function createPaymentMethod(formData: FormData) {
   revalidatePath("/settings/payment-methods");
 }
 
+export async function createBankConnection(formData: FormData) {
+  const user = await requireUser();
+  const parsed = z
+    .object({
+      provider: z.enum(["kontomatik", "fizen", "enable_banking", "neonomics", "salt_edge", "gocardless", "csv_only"]),
+      displayName: z.string().min(2).max(80),
+    })
+    .parse({
+      provider: formData.get("provider"),
+      displayName: formData.get("displayName"),
+    });
+
+  await prisma.bankConnection.create({
+    data: {
+      householdId: user.householdId,
+      provider: parsed.provider,
+      displayName: parsed.displayName,
+      status: parsed.provider === "csv_only" ? "connected" : "draft",
+      errorMessage:
+        parsed.provider === "csv_only"
+          ? null
+          : "Czeka na konfigurację kluczy API dostawcy PSD2 i flow zgody bankowej.",
+    },
+  });
+  revalidatePath("/settings/banks");
+}
+
+export async function disableBankConnection(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id") ?? "");
+  await prisma.bankConnection.updateMany({
+    where: { id, householdId: user.householdId },
+    data: { status: "disabled" },
+  });
+  revalidatePath("/settings/banks");
+}
+
+export async function syncBankConnections() {
+  const user = await requireUser();
+  const connections = await prisma.bankConnection.findMany({
+    where: { householdId: user.householdId, status: { in: ["connected", "draft"] } },
+  });
+
+  for (const connection of connections) {
+    await prisma.bankConnection.update({
+      where: { id: connection.id },
+      data: {
+        lastSyncedAt: new Date(),
+        errorMessage:
+          connection.provider === "csv_only"
+            ? null
+            : "Synchronizacja PSD2 czeka na klucze API i implementację konkretnego dostawcy.",
+      },
+    });
+  }
+  revalidatePath("/settings/banks");
+}
+
 export async function updateAccount(formData: FormData) {
   const user = await requireUser();
   const parsed = z
@@ -317,6 +375,8 @@ export async function runRecurringTransactions() {
           paymentMethodId: item.paymentMethodId,
           addedById: item.addedById,
           recurringTransactionId: item.id,
+          source: "recurring",
+          externalId: `recurring:${item.id}:${item.nextRunAt.toISOString().slice(0, 10)}`,
         },
       });
       await tx.recurringTransaction.update({

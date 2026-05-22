@@ -8,7 +8,7 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 - [ ] Dodac wlasna domene albo zostawic obecny adres Vercel jako oficjalny adres aplikacji.
 - [ ] Upewnic sie, ze Vercel GitHub App jest zainstalowany dla repo, jesli ma byc natywne polaczenie GitHub -> Vercel w panelu Vercela.
 - [x] Dodac obejscie auto-deploy przez GitHub Actions.
-- [ ] Dodac cron/scheduler dla `/api/recurring/run`, zeby transakcje cykliczne wykonywaly sie automatycznie.
+- [x] Dodac cron/scheduler dla `/api/recurring/run`, zeby transakcje cykliczne wykonywaly sie automatycznie.
 - [ ] Dodac automatyczny backup bazy, np. tygodniowy `pg_dump`.
 - [ ] Dodac prosty ekran/status ostatniego backupu.
 - [ ] Przejrzec dane seed i usunac/przerobic przykladowe transakcje, gdy zaczniecie uzywac aplikacji realnie.
@@ -21,25 +21,25 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
   - Fizen jako wariant lokalny/CEE,
   - Enable Banking, Neonomics albo Salt Edge jako alternatywy,
   - GoCardless Bank Account Data tylko po potwierdzeniu aktualnej dostepnosci kont/API.
-- [ ] Dodac model Prisma `BankConnection`.
-- [ ] Dodac model Prisma `BankAccount`.
-- [ ] Dodac model Prisma `BankTransaction`.
+- [x] Dodac model Prisma `BankConnection`.
+- [x] Dodac model Prisma `BankAccount`.
+- [x] Dodac model Prisma `BankTransaction`.
 - [ ] Dodac szyfrowanie tokenow dostepu dostawcy PSD2 w bazie.
-- [ ] Dodac ekran **Ustawienia -> Banki**.
+- [x] Dodac ekran **Ustawienia -> Banki**.
 - [ ] Dodac flow: `Polacz bank` -> redirect do dostawcy -> powrot do aplikacji -> zapis zgody.
-- [ ] Dodac reczne odswiezanie transakcji z banku.
+- [x] Dodac reczne odswiezanie transakcji z banku.
 - [ ] Dodac automatyczne odswiezanie transakcji przez cron, np. raz dziennie.
-- [ ] Dodac deduplikacje po `externalTransactionId`, kwocie, dacie i opisie.
+- [x] Dodac deduplikacje po `externalTransactionId`, kwocie, dacie i opisie.
 - [ ] Dodac mapowanie transakcji bankowych na kategorie.
 - [ ] Dodac reguly automatycznej kategoryzacji, np. `Biedronka -> Jedzenie`.
 - [ ] Dodac tryb przegladu importu: nowe transakcje trafiaja najpierw do zatwierdzenia.
-- [ ] Dodac oznaczenie zrodla transakcji: reczna / CSV / bank.
+- [x] Dodac oznaczenie zrodla transakcji: reczna / CSV / bank.
 - [ ] Dodac mozliwosc ukrycia albo polaczenia duplikatow miedzy CSV a bank sync.
 - [ ] Nigdy nie przechowywac loginu ani hasla do banku.
 
 ## Priorytet 2: import CSV pod konkretne banki
 
-- [ ] Dodac profile importu CSV dla najpopularniejszych bankow:
+- [x] Dodac profile importu CSV dla najpopularniejszych bankow:
   - mBank,
   - PKO BP / Inteligo,
   - ING,
@@ -50,7 +50,7 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
   - Revolut.
 - [ ] Dodac ekran mapowania kolumn CSV przed importem.
 - [ ] Dodac podglad 10 pierwszych wierszy przed zatwierdzeniem importu.
-- [ ] Dodac wykrywanie separatora, kodowania i formatu kwoty.
+- [x] Dodac wykrywanie separatora i formatu kwoty.
 - [ ] Dodac raport po imporcie: dodane, pominiete, zdublowane, wymagajace uwagi.
 - [ ] Dodac reguly kategoryzacji na podstawie odbiorcy/nadawcy/opisu.
 
