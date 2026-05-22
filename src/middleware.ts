@@ -1,8 +1,11 @@
-import { getToken } from "next-auth/jwt";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET });
+export function middleware(request: NextRequest) {
+  const token =
+    request.cookies.get("__Secure-authjs.session-token") ??
+    request.cookies.get("authjs.session-token") ??
+    request.cookies.get("__Secure-next-auth.session-token") ??
+    request.cookies.get("next-auth.session-token");
   const isLogin = request.nextUrl.pathname.startsWith("/login");
 
   if (!token && !isLogin) {
