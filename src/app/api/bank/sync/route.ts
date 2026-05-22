@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const userAgent = request.headers.get("user-agent");
+  if (userAgent !== "vercel-cron/1.0" && process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
