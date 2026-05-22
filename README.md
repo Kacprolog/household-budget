@@ -83,7 +83,9 @@ Metody płatności: **Ustawienia → Metody płatności**. Domyślnie seed zawie
 
 ## Backup bazy
 
-Supabase: **Project Settings → Database → Backups** albo `pg_dump`:
+Automatyczny backup jest w GitHub Actions: workflow **Database Backup** odpala sie w niedziele o 03:15 UTC i mozna go uruchomic recznie przez **Actions -> Database Backup -> Run workflow**. Backup jest wrzucany jako artifact na 30 dni.
+
+Reczny backup przez `pg_dump`:
 
 ```bash
 pg_dump "$DATABASE_URL" > backup.sql

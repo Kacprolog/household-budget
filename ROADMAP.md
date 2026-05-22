@@ -9,7 +9,7 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 - [ ] Upewnic sie, ze Vercel GitHub App jest zainstalowany dla repo, jesli ma byc natywne polaczenie GitHub -> Vercel w panelu Vercela.
 - [x] Dodac obejscie auto-deploy przez GitHub Actions.
 - [x] Dodac cron/scheduler dla `/api/recurring/run`, zeby transakcje cykliczne wykonywaly sie automatycznie.
-- [ ] Dodac automatyczny backup bazy, np. tygodniowy `pg_dump`.
+- [x] Dodac automatyczny backup bazy, np. tygodniowy `pg_dump`.
 - [ ] Dodac prosty ekran/status ostatniego backupu.
 - [ ] Przejrzec dane seed i usunac/przerobic przykladowe transakcje, gdy zaczniecie uzywac aplikacji realnie.
 
@@ -115,9 +115,9 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 
 - [ ] Przeniesc deployment na natywne GitHub -> Vercel po instalacji GitHub App.
 - [x] Ustawic GitHub Actions deployujacy na Vercel jako alternatywe.
-- [ ] Dodac Vercel cron dla transakcji cyklicznych.
+- [x] Dodac Vercel cron dla transakcji cyklicznych.
 - [ ] Dodac Vercel cron dla synchronizacji bankowej.
-- [ ] Dodac Vercel cron dla backupow.
+- [x] Dodac GitHub Actions scheduler dla backupow.
 - [ ] Dodac osobne srodowisko preview/staging.
 - [ ] Dodac baze staging.
 - [ ] Dodac instrukcje odtwarzania backupu krok po kroku.
