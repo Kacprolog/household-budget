@@ -1,36 +1,115 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Budżet domowy
 
-## Getting Started
+Pełna aplikacja Next.js do wspólnego zarządzania budżetem dla dwóch osób. UI jest po polsku, działa responsywnie, ma dark mode, Auth.js Credentials, Prisma/PostgreSQL, dashboard, analitykę, budżety, cele, import CSV oraz eksport CSV/PDF.
 
-First, run the development server:
+## Konta seed
+
+| Login | Hasło tymczasowe | Rola |
+| --- | --- | --- |
+| `kacper` | `KacperBudzet2026!` | owner |
+| `narzeczona` | `PartnerkaBudzet2026!` | partner |
+
+Po pierwszym logowaniu wejdź w **Ustawienia → Konto** i zmień hasło.
+
+## Lokalny start
+
+1. Skopiuj `.env.example` do `.env` i ustaw `DATABASE_URL`.
+2. Wygeneruj sekret:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+   ```
+3. Wklej wynik jako `AUTH_SECRET` i `NEXTAUTH_SECRET`.
+4. Uruchom:
+   ```bash
+   npm install
+   npm run db:generate
+   npm run db:deploy
+   npm run db:seed
+   npm run dev
+   ```
+5. Otwórz `http://localhost:3000`.
+
+## Deployment: Supabase + Vercel
+
+1. Supabase: utwórz projekt na [supabase.com](https://supabase.com), wejdź w **Project Settings → Database → Connection string** i skopiuj connection string PostgreSQL. Do Vercela najlepiej wklej pooler/transaction URL, jeśli Supabase go pokazuje.
+2. Vercel: zaimportuj repo GitHub, ustaw zmienne:
+   - `DATABASE_URL`
+   - `AUTH_SECRET`
+   - `NEXTAUTH_SECRET`
+   - `AUTH_URL=https://twoj-projekt.vercel.app`
+   - `NEXTAUTH_URL=https://twoj-projekt.vercel.app`
+   - `CRON_SECRET`
+3. Build command: `npm run build`. Install command: `npm ci`.
+4. Po pierwszym deployu uruchom lokalnie lub w Vercel CLI:
+   ```bash
+   npx vercel env pull .env.production.local
+   $env:DATABASE_URL="wklej_produkcyjny_url"
+   npm run db:deploy
+   npm run db:seed
+   ```
+
+## GitHub i Vercel CLI
+
+Repo można utworzyć poleceniami:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git add .
+git commit -m "Initial household budget app"
+gh repo create household-budget --private --source . --remote origin --push
+npx vercel login
+npx vercel --prod
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Jeśli chcesz repo publiczne, zamień `--private` na `--public`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Zmiana haseł
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Najprościej w aplikacji: **Ustawienia → Konto → Zmiana hasła**. Hasła są hashowane przez bcrypt z cost 12.
 
-## Learn More
+Awaryjnie przez Prisma Studio:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run db:generate
+npx prisma studio
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Nie wpisuj hasła ręcznie w bazie jako tekst jawny. Wygeneruj hash bcrypt i podmień `passwordHash`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Kategorie i metody płatności
 
-## Deploy on Vercel
+Kategorie: **Ustawienia → Kategorie**. Usunięcie jest blokowane, jeśli do kategorii są przypisane transakcje. Najpierw przenieś transakcje do innej kategorii.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Metody płatności: **Ustawienia → Metody płatności**. Domyślnie seed zawiera Gotówka, Karta, Przelew i BLIK.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Backup bazy
+
+Supabase: **Project Settings → Database → Backups** albo `pg_dump`:
+
+```bash
+pg_dump "$DATABASE_URL" > backup.sql
+```
+
+Przywrócenie:
+
+```bash
+psql "$DATABASE_URL" < backup.sql
+```
+
+## Limity darmowych tierów
+
+Stan na 22.05.2026, sprawdź aktualne tabele przed produkcyjnym użyciem:
+
+- Supabase Free: 2 darmowe projekty, 500 MB database size per project, 5 GB egress, 1 GB storage, 50 000 MAU. Źródło: [Supabase billing docs](https://supabase.com/docs/guides/platform/billing-on-supabase).
+- Vercel Hobby: personal/non-commercial use, 1 000 000 function invocations, 100 GB-hours function duration, 4 CPU-hours, 200 projektów, 100 deployów dziennie, domyślnie 10 s dla Vercel Functions. Źródło: [Vercel Hobby Plan](https://vercel.com/docs/plans/hobby) i [Vercel limits](https://vercel.com/docs/limits).
+- Neon Free jako alternatywa: 100 CU-hours miesięcznie per projekt i scale-to-zero przy bezczynności. Źródło: [Neon pricing](https://neon.com/pricing).
+
+Dla budżetu dwóch osób największe ryzyko limitów to zwykle baza 500 MB przy dużej liczbie załączników/importów, limity funkcji PDF przy bardzo długich raportach oraz bezczynność/free-tier policies dostawcy.
+
+## Funkcje
+
+- Dashboard: przychody, wydatki, saldo, wykorzystanie budżetu, top kategorie, wykres salda, donut kategorii, porównanie miesięcy, ostatnie transakcje, status celów i alerty 80/100%.
+- Transakcje: dodawanie przez FAB, filtry, sortowanie, paginacja, soft delete, cykliczność.
+- Budżety: limity miesięczne per kategoria i progress bars.
+- Cele: tworzenie celów, ręczne wpłaty, transakcja oszczędnościowa i prognoza.
+- Analityka: zakresy, przychody vs wydatki, oszczędności, heatmap, statystyki, autorzy, top transakcje, trendy, forecast, burn rate.
+- Eksport/import: CSV server-side, PDF server-side, import CSV z mapowaniem nazw kolumn.

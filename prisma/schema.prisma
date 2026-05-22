@@ -1,0 +1,193 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  owner
+  partner
+}
+
+enum TransactionType {
+  income
+  expense
+  saving
+}
+
+enum RecurrenceFrequency {
+  weekly
+  monthly
+  yearly
+}
+
+model Household {
+  id                String                 @id @default(cuid())
+  name              String
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  users             User[]
+  categories        Category[]
+  paymentMethods    PaymentMethod[]
+  transactions      Transaction[]
+  budgets           Budget[]
+  goals             Goal[]
+  recurring         RecurringTransaction[]
+}
+
+model User {
+  id            String        @id @default(cuid())
+  login         String        @unique
+  passwordHash  String
+  displayName   String
+  color         String        @default("#0ea5e9")
+  role          UserRole
+  householdId   String
+  household     Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  transactions  Transaction[] @relation("TransactionAuthor")
+  recurring     RecurringTransaction[]
+  contributions GoalContribution[]
+
+  @@index([householdId])
+}
+
+model Category {
+  id           String            @id @default(cuid())
+  householdId  String
+  household    Household         @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  name         String
+  type         TransactionType
+  color        String
+  icon         String
+  isDefault    Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  transactions Transaction[]
+  budgets      Budget[]
+  recurring    RecurringTransaction[]
+
+  @@unique([householdId, name, type])
+  @@index([householdId, type])
+}
+
+model PaymentMethod {
+  id           String            @id @default(cuid())
+  householdId  String
+  household    Household         @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  name         String
+  icon         String            @default("Wallet")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  transactions Transaction[]
+  recurring    RecurringTransaction[]
+
+  @@unique([householdId, name])
+}
+
+model Transaction {
+  id                      String                @id @default(cuid())
+  householdId             String
+  household               Household             @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  type                    TransactionType
+  amount                  Decimal               @db.Decimal(12, 2)
+  description             String?
+  date                    DateTime
+  categoryId              String
+  category                Category              @relation(fields: [categoryId], references: [id])
+  paymentMethodId         String
+  paymentMethod           PaymentMethod         @relation(fields: [paymentMethodId], references: [id])
+  addedById               String
+  addedBy                 User                  @relation("TransactionAuthor", fields: [addedById], references: [id])
+  goalId                  String?
+  goal                    Goal?                 @relation(fields: [goalId], references: [id])
+  recurringTransactionId  String?
+  recurringTransaction    RecurringTransaction? @relation(fields: [recurringTransactionId], references: [id])
+  deletedAt               DateTime?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  contribution            GoalContribution?
+
+  @@index([householdId, date])
+  @@index([categoryId])
+  @@index([addedById])
+  @@index([deletedAt])
+}
+
+model Budget {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+  month       DateTime
+  limitAmount Decimal   @db.Decimal(12, 2)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([householdId, categoryId, month])
+  @@index([householdId, month])
+}
+
+model Goal {
+  id            String             @id @default(cuid())
+  householdId   String
+  household     Household          @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  name          String
+  targetAmount  Decimal            @db.Decimal(12, 2)
+  currentAmount Decimal            @default(0) @db.Decimal(12, 2)
+  deadline      DateTime?
+  color         String             @default("#22c55e")
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  contributions GoalContribution[]
+  transactions  Transaction[]
+
+  @@index([householdId])
+}
+
+model GoalContribution {
+  id            String      @id @default(cuid())
+  goalId        String
+  goal          Goal        @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  amount        Decimal     @db.Decimal(12, 2)
+  contributedAt DateTime    @default(now())
+  addedById     String
+  addedBy       User        @relation(fields: [addedById], references: [id])
+  transactionId String      @unique
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+
+  @@index([goalId, contributedAt])
+}
+
+model RecurringTransaction {
+  id              String              @id @default(cuid())
+  householdId     String
+  household       Household           @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  type            TransactionType
+  amount          Decimal             @db.Decimal(12, 2)
+  description     String?
+  categoryId      String
+  category        Category            @relation(fields: [categoryId], references: [id])
+  paymentMethodId String
+  paymentMethod   PaymentMethod       @relation(fields: [paymentMethodId], references: [id])
+  addedById       String
+  addedBy         User                @relation(fields: [addedById], references: [id])
+  frequency       RecurrenceFrequency
+  nextRunAt       DateTime
+  lastRunAt       DateTime?
+  isActive        Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  transactions    Transaction[]
+
+  @@index([householdId, nextRunAt, isActive])
+}
