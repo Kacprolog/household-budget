@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { markBankConnectionsSynced } from "@/lib/bank-sync";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -8,22 +8,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const connections = await prisma.bankConnection.findMany({
-    where: { status: { in: ["connected", "draft"] } },
-  });
+  const checked = await markBankConnectionsSynced({ status: { in: ["connected", "draft"] } });
 
-  for (const connection of connections) {
-    await prisma.bankConnection.update({
-      where: { id: connection.id },
-      data: {
-        lastSyncedAt: new Date(),
-        errorMessage:
-          connection.provider === "csv_only"
-            ? null
-            : "Synchronizacja PSD2 czeka na klucze API i implementację konkretnego dostawcy.",
-      },
-    });
-  }
-
-  return NextResponse.json({ ok: true, checked: connections.length });
+  return NextResponse.json({ ok: true, checked });
 }

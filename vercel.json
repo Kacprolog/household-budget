@@ -3,6 +3,10 @@
     {
       "path": "/api/recurring/run",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/bank/sync",
+      "schedule": "0 5 * * *"
     }
   ]
 }

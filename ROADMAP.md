@@ -24,18 +24,18 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 - [x] Dodac model Prisma `BankConnection`.
 - [x] Dodac model Prisma `BankAccount`.
 - [x] Dodac model Prisma `BankTransaction`.
-- [ ] Dodac szyfrowanie tokenow dostepu dostawcy PSD2 w bazie.
+- [x] Dodac szyfrowanie tokenow dostepu dostawcy PSD2 w bazie.
 - [x] Dodac ekran **Ustawienia -> Banki**.
 - [ ] Dodac flow: `Polacz bank` -> redirect do dostawcy -> powrot do aplikacji -> zapis zgody.
 - [x] Dodac reczne odswiezanie transakcji z banku.
-- [ ] Dodac automatyczne odswiezanie transakcji przez cron, np. raz dziennie.
+- [x] Dodac automatyczne odswiezanie transakcji przez cron, np. raz dziennie.
 - [x] Dodac deduplikacje po `externalTransactionId`, kwocie, dacie i opisie.
 - [x] Dodac mapowanie transakcji bankowych na kategorie.
 - [x] Dodac reguly automatycznej kategoryzacji, np. `Biedronka -> Jedzenie`.
 - [ ] Dodac tryb przegladu importu: nowe transakcje trafiaja najpierw do zatwierdzenia.
 - [x] Dodac oznaczenie zrodla transakcji: reczna / CSV / bank.
 - [ ] Dodac mozliwosc ukrycia albo polaczenia duplikatow miedzy CSV a bank sync.
-- [ ] Nigdy nie przechowywac loginu ani hasla do banku.
+- [x] Nigdy nie przechowywac loginu ani hasla do banku.
 
 ## Priorytet 2: import CSV pod konkretne banki
 
@@ -105,7 +105,7 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 - [ ] Dodac walidacje uprawnien we wszystkich akcjach modyfikujacych dane.
 - [ ] Dodac audyt zdarzen: kto co dodal/zmienil/usunal.
 - [ ] Dodac rate limiting dla innych wrazliwych endpointow, nie tylko loginu.
-- [ ] Dodac szyfrowanie wrazliwych danych integracji bankowej.
+- [x] Dodac szyfrowanie wrazliwych danych integracji bankowej.
 - [ ] Dodac rotacje sekretow.
 - [ ] Dodac monitoring bledow, np. Sentry.
 - [ ] Dodac logi audytowe bez danych wrazliwych.
@@ -116,7 +116,7 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 - [ ] Przeniesc deployment na natywne GitHub -> Vercel po instalacji GitHub App.
 - [x] Ustawic GitHub Actions deployujacy na Vercel jako alternatywe.
 - [x] Dodac Vercel cron dla transakcji cyklicznych.
-- [ ] Dodac Vercel cron dla synchronizacji bankowej.
+- [x] Dodac Vercel cron dla synchronizacji bankowej.
 - [x] Dodac GitHub Actions scheduler dla backupow.
 - [ ] Dodac osobne srodowisko preview/staging.
 - [ ] Dodac baze staging.

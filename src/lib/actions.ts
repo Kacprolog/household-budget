@@ -6,11 +6,18 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { signIn, signOut } from "@/auth";
+import { encryptBankTokenPayload, tokenLastFour } from "@/lib/bank-tokens";
+import { markBankConnectionsSynced } from "@/lib/bank-sync";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { nextRunDate } from "@/lib/utils";
 
 const amountSchema = z.coerce.number().positive().max(999_999_999);
+
+function emptyToUndefined(value: FormDataEntryValue | null) {
+  const text = String(value ?? "").trim();
+  return text.length ? text : undefined;
+}
 
 export async function loginAction(formData: FormData) {
   const login = String(formData.get("login") ?? "");
@@ -379,11 +386,16 @@ export async function createBankConnection(formData: FormData) {
     .object({
       provider: z.enum(["kontomatik", "fizen", "enable_banking", "neonomics", "salt_edge", "gocardless", "csv_only"]),
       displayName: z.string().min(2).max(80),
+      providerToken: z.string().max(4000).optional(),
     })
     .parse({
       provider: formData.get("provider"),
       displayName: formData.get("displayName"),
+      providerToken: emptyToUndefined(formData.get("providerToken")),
     });
+  const encryptedToken = parsed.providerToken
+    ? encryptBankTokenPayload({ accessToken: parsed.providerToken })
+    : null;
 
   await prisma.bankConnection.create({
     data: {
@@ -391,10 +403,14 @@ export async function createBankConnection(formData: FormData) {
       provider: parsed.provider,
       displayName: parsed.displayName,
       status: parsed.provider === "csv_only" ? "connected" : "draft",
+      encryptedToken,
+      tokenLastFour: parsed.providerToken ? tokenLastFour(parsed.providerToken) : null,
       errorMessage:
         parsed.provider === "csv_only"
           ? null
-          : "Czeka na konfigurację kluczy API dostawcy PSD2 i flow zgody bankowej.",
+          : encryptedToken
+            ? "Token dostawcy zapisany w bazie w formie zaszyfrowanej. Flow zgody bankowej nadal wymaga implementacji dostawcy."
+            : "Czeka na konfigurację kluczy API dostawcy PSD2 i flow zgody bankowej.",
     },
   });
   revalidatePath("/settings/banks");
@@ -412,22 +428,10 @@ export async function disableBankConnection(formData: FormData) {
 
 export async function syncBankConnections() {
   const user = await requireUser();
-  const connections = await prisma.bankConnection.findMany({
-    where: { householdId: user.householdId, status: { in: ["connected", "draft"] } },
+  await markBankConnectionsSynced({
+    householdId: user.householdId,
+    status: { in: ["connected", "draft"] },
   });
-
-  for (const connection of connections) {
-    await prisma.bankConnection.update({
-      where: { id: connection.id },
-      data: {
-        lastSyncedAt: new Date(),
-        errorMessage:
-          connection.provider === "csv_only"
-            ? null
-            : "Synchronizacja PSD2 czeka na klucze API i implementację konkretnego dostawcy.",
-      },
-    });
-  }
   revalidatePath("/settings/banks");
 }
 

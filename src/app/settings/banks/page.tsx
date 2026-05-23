@@ -43,7 +43,7 @@ export default async function BanksPage() {
           <CardTitle>Dodaj źródło danych bankowych</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={createBankConnection} className="grid gap-3 md:grid-cols-[220px_1fr_auto]">
+          <form action={createBankConnection} className="grid gap-3 lg:grid-cols-[220px_1fr_1fr_auto]">
             <div className="space-y-2">
               <Label htmlFor="provider">Dostawca</Label>
               <select id="provider" name="provider" className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950" defaultValue="kontomatik">
@@ -56,12 +56,16 @@ export default async function BanksPage() {
               <Label htmlFor="displayName">Nazwa</Label>
               <Input id="displayName" name="displayName" placeholder="np. Konto wspólne, mBank Kacper" required />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="providerToken">Token dostawcy</Label>
+              <Input id="providerToken" name="providerToken" type="password" placeholder="opcjonalnie, nie hasło do banku" autoComplete="off" />
+            </div>
             <div className="flex items-end">
               <Button type="submit">Dodaj</Button>
             </div>
           </form>
           <p className="mt-3 text-sm text-slate-500">
-            Ten ekran jest przygotowany pod PSD2/Open Banking. Do czasu podpięcia kluczy dostawcy realne dane można importować przez CSV z deduplikacją.
+            Ten ekran jest przygotowany pod PSD2/Open Banking. Nie wpisuj tu loginu ani hasła do banku. Opcjonalny token dostawcy jest szyfrowany po stronie serwera.
           </p>
         </CardContent>
       </Card>
@@ -81,6 +85,7 @@ export default async function BanksPage() {
             <CardContent className="space-y-4">
               <div className="grid gap-2 text-sm text-slate-500">
                 <div>Dostawca: {providerLabel(connection.provider)}</div>
+                <div>Token: {connection.tokenLastFour ? `zaszyfrowany, końcówka ${connection.tokenLastFour}` : "brak"}</div>
                 <div>Ostatnia synchronizacja: {connection.lastSyncedAt ? plDate(connection.lastSyncedAt) : "brak"}</div>
                 <div>Zgoda ważna do: {connection.consentExpiresAt ? plDate(connection.consentExpiresAt) : "brak"}</div>
                 {connection.errorMessage ? <div className="text-amber-600">{connection.errorMessage}</div> : null}
