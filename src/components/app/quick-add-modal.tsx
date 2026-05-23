@@ -3,7 +3,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,34 +12,54 @@ import { createTransaction } from "@/lib/actions";
 
 type Category = { id: string; name: string; type: "income" | "expense"; color: string };
 type PaymentMethod = { id: string; name: string };
+type QuickAddData = { categories: Category[]; paymentMethods: PaymentMethod[]; descriptions: string[] };
 
-export function QuickAddModal({
-  categories,
-  paymentMethods,
-  descriptions,
-}: {
-  categories: Category[];
-  paymentMethods: PaymentMethod[];
-  descriptions: string[];
-}) {
+export function QuickAddModal() {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"income" | "expense">("expense");
+  const [data, setData] = useState<QuickAddData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const descriptionId = "description-suggestions";
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  const filteredCategories = categories.filter((category) => category.type === type);
+  const filteredCategories = (data?.categories ?? []).filter((category) => category.type === type);
+
+  const loadQuickAddData = useCallback(async () => {
+    if (data || loading) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/quick-add", { cache: "no-store" });
+      if (!response.ok) throw new Error("Nie udało się pobrać danych formularza.");
+      setData((await response.json()) as QuickAddData);
+    } catch {
+      setError("Nie udało się pobrać list formularza. Spróbuj ponownie.");
+    } finally {
+      setLoading(false);
+    }
+  }, [data, loading]);
+
+  const changeOpen = useCallback(
+    (nextOpen: boolean) => {
+      setOpen(nextOpen);
+      if (nextOpen) void loadQuickAddData();
+    },
+    [loadQuickAddData],
+  );
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if (event.key.toLowerCase() === "n" && !event.metaKey && !event.ctrlKey) setOpen(true);
+      if (event.key.toLowerCase() === "n" && !event.metaKey && !event.ctrlKey) changeOpen(true);
       if (event.key === "Escape") setOpen(false);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [changeOpen]);
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root open={open} onOpenChange={changeOpen}>
       <Dialog.Trigger asChild>
         <Button className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6" size="icon" title="Nowa transakcja">
           <Plus className="h-7 w-7" />
@@ -80,6 +100,8 @@ export function QuickAddModal({
                   }}
                   className="grid gap-4"
                 >
+                  {loading ? <div className="rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">Ładowanie list...</div> : null}
+                  {error ? <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">{error}</div> : null}
                   <div className="grid grid-cols-2 rounded-md bg-slate-100 p-1 dark:bg-slate-900">
                     {(["expense", "income"] as const).map((option) => (
                       <button
@@ -106,7 +128,7 @@ export function QuickAddModal({
                   <div className="grid gap-2 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="categoryId">Kategoria</Label>
-                      <select id="categoryId" name="categoryId" required className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950">
+                      <select id="categoryId" name="categoryId" required disabled={loading || !filteredCategories.length} className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950">
                         {filteredCategories.map((category) => (
                           <option key={category.id} value={category.id}>
                             {category.name}
@@ -116,8 +138,8 @@ export function QuickAddModal({
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="paymentMethodId">Metoda</Label>
-                      <select id="paymentMethodId" name="paymentMethodId" required className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950">
-                        {paymentMethods.map((method) => (
+                      <select id="paymentMethodId" name="paymentMethodId" required disabled={loading || !data?.paymentMethods.length} className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950">
+                        {data?.paymentMethods.map((method) => (
                           <option key={method.id} value={method.id}>
                             {method.name}
                           </option>
@@ -129,7 +151,7 @@ export function QuickAddModal({
                     <Label htmlFor="description">Opis</Label>
                     <Textarea id="description" name="description" placeholder="np. zakupy, czynsz, zwrot" />
                     <datalist id={descriptionId}>
-                      {descriptions.map((description) => (
+                      {data?.descriptions.map((description) => (
                         <option key={description} value={description} />
                       ))}
                     </datalist>
@@ -143,7 +165,7 @@ export function QuickAddModal({
                       <option value="yearly">Co rok</option>
                     </select>
                   </div>
-                  <Button type="submit">Zapisz transakcję</Button>
+                  <Button type="submit" disabled={loading || Boolean(error) || !filteredCategories.length || !data?.paymentMethods.length}>Zapisz transakcję</Button>
                 </form>
               </motion.div>
             </Dialog.Content>

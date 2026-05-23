@@ -3,7 +3,6 @@ import { AlertTriangle, BarChart3, Gauge, ListChecks, PiggyBank, Settings, Targe
 import { QuickAddModal } from "@/components/app/quick-add-modal";
 import { SignOutButton } from "@/components/app/sign-out-button";
 import { ThemeToggle } from "@/components/app/theme-toggle";
-import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
@@ -18,18 +17,6 @@ const nav = [
 
 export async function AppFrame({ children, title }: { children: React.ReactNode; title: string }) {
   const user = await requireUser();
-
-  const [categories, paymentMethods, descriptions] = await Promise.all([
-    prisma.category.findMany({ where: { householdId: user.householdId }, orderBy: [{ type: "asc" }, { name: "asc" }] }),
-    prisma.paymentMethod.findMany({ where: { householdId: user.householdId }, orderBy: { name: "asc" } }),
-    prisma.transaction.findMany({
-      where: { householdId: user.householdId, deletedAt: null, description: { not: null } },
-      distinct: ["description"],
-      take: 30,
-      orderBy: { createdAt: "desc" },
-      select: { description: true },
-    }),
-  ]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
@@ -84,13 +71,7 @@ export async function AppFrame({ children, title }: { children: React.ReactNode;
           </Link>
         ))}
       </nav>
-      <QuickAddModal
-        categories={categories
-          .filter((category) => category.type === "income" || category.type === "expense")
-          .map((category) => ({ id: category.id, name: category.name, type: category.type as "income" | "expense", color: category.color }))}
-        paymentMethods={paymentMethods.map((method) => ({ id: method.id, name: method.name }))}
-        descriptions={descriptions.map((item) => item.description).filter(Boolean) as string[]}
-      />
+      <QuickAddModal />
     </div>
   );
 }
