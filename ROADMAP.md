@@ -125,7 +125,7 @@ Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego h
 - [ ] Dodac osobne srodowisko preview/staging.
 - [ ] Dodac baze staging.
 - [ ] Dodac instrukcje odtwarzania backupu krok po kroku.
-- [ ] Dodac check migracji Prisma w CI.
+- [x] Dodac check schematu Prisma w CI.
 - [x] Przelaczyc runtime GitHub Actions na Node 24 przed wymuszeniem przez GitHub.
 - [ ] Dodac automatyczne dependency updates.
 
