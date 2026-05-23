@@ -122,6 +122,7 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 - [ ] Dodac baze staging.
 - [ ] Dodac instrukcje odtwarzania backupu krok po kroku.
 - [ ] Dodac check migracji Prisma w CI.
+- [x] Przelaczyc runtime GitHub Actions na Node 24 przed wymuszeniem przez GitHub.
 - [ ] Dodac automatyczne dependency updates.
 
 ## Priorytet 8: nice to have
