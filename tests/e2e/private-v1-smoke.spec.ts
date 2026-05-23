@@ -29,6 +29,12 @@ test.describe("private v1 smoke", () => {
     await page.getByRole("link", { name: "Analityka" }).click();
     await expect(page.getByRole("heading", { name: "Analityka" })).toBeVisible();
 
+    await page.getByRole("link", { name: "Ustawienia", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Ustawienia" })).toBeVisible();
+    await page.getByRole("link", { name: "Aktywność" }).click();
+    await expect(page.getByRole("heading", { name: "Aktywność" })).toBeVisible();
+    await expect(page.getByText("Ostatnie zmiany")).toBeVisible();
+
     const csv = await page.request.get("/api/export/csv");
     expect(csv.ok()).toBe(true);
     expect(csv.headers()["content-type"]).toContain("text/csv");
