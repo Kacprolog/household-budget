@@ -99,6 +99,7 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 
 ## Priorytet 6: bezpieczenstwo i stabilnosc
 
+- [x] Zrobic pierwszy pass wydajnosci: cache sesji/uzytkownika, indeksy transakcji i lzejsze agregacje dashboard/analityka.
 - [ ] Dodac testy jednostkowe dla funkcji finansowych.
 - [ ] Dodac testy integracyjne dla server actions.
 - [ ] Dodac testy e2e Playwright: login, dodanie transakcji, eksport CSV/PDF.

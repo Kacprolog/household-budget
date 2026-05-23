@@ -26,19 +26,29 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
   const expenses = transactions.filter((item) => item.type !== "income");
   const incomes = transactions.filter((item) => item.type === "income");
   const days = eachDayOfInterval({ start: range.from, end: range.to });
+  const totalsByDay = new Map<string, { przychody: number; wydatki: number }>();
+  for (const item of transactions) {
+    const key = format(item.date, "yyyy-MM-dd");
+    const bucket = totalsByDay.get(key) ?? { przychody: 0, wydatki: 0 };
+    if (item.type === "income") bucket.przychody += toNumber(item.amount);
+    else bucket.wydatki += toNumber(item.amount);
+    totalsByDay.set(key, bucket);
+  }
   const byDay = days.map((day) => {
     const key = format(day, "yyyy-MM-dd");
+    const bucket = totalsByDay.get(key) ?? { przychody: 0, wydatki: 0 };
     return {
       label: format(day, "dd.MM"),
-      przychody: incomes.filter((item) => format(item.date, "yyyy-MM-dd") === key).reduce((sum, item) => sum + toNumber(item.amount), 0),
-      wydatki: expenses.filter((item) => format(item.date, "yyyy-MM-dd") === key).reduce((sum, item) => sum + toNumber(item.amount), 0),
+      przychody: bucket.przychody,
+      wydatki: bucket.wydatki,
     };
   });
 
   const savings = byDay.reduce<{ data: { label: string; oszczednosci: number }[]; cumulative: number }>(
     (acc, item) => {
-      const cumulative = acc.cumulative + item.przychody - item.wydatki;
-      return { cumulative, data: [...acc.data, { label: item.label, oszczednosci: cumulative }] };
+      acc.cumulative += item.przychody - item.wydatki;
+      acc.data.push({ label: item.label, oszczednosci: acc.cumulative });
+      return acc;
     },
     { data: [], cumulative: 0 },
   ).data;
@@ -70,11 +80,15 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
   const trends = [...byCategory.values()].sort((a, b) => b.current - a.current).slice(0, 8);
   const forecast = new Date().getDate() ? (expenses.filter((item) => isSameMonth(item.date, new Date())).reduce((sum, item) => sum + toNumber(item.amount), 0) / new Date().getDate()) * new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() : 0;
 
+  const heatmapCategories = commonNames.concat(["Jedzenie", "Transport", "Rozrywka"]);
+  const heatmapValues = new Map<string, number>();
+  for (const item of expenses) {
+    const key = `${getDay(item.date)}:${item.category.name}`;
+    heatmapValues.set(key, (heatmapValues.get(key) ?? 0) + toNumber(item.amount));
+  }
   const heatmap = Array.from({ length: 7 }, (_, day) => ({
     day,
-    values: commonNames.concat(["Jedzenie", "Transport", "Rozrywka"]).map((name) =>
-      expenses.filter((item) => getDay(item.date) === day && item.category.name === name).reduce((sum, item) => sum + toNumber(item.amount), 0),
-    ),
+    values: heatmapCategories.map((name) => heatmapValues.get(`${day}:${name}`) ?? 0),
   }));
   const maxHeat = Math.max(1, ...heatmap.flatMap((row) => row.values));
 
@@ -108,7 +122,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
           <CardContent>
             <div className="grid grid-cols-[80px_repeat(6,1fr)] gap-1 text-xs">
               <div />
-              {commonNames.concat(["Jedzenie", "Transport", "Rozrywka"]).map((name) => <div key={name} className="truncate text-slate-500">{name}</div>)}
+              {heatmapCategories.map((name) => <div key={name} className="truncate text-slate-500">{name}</div>)}
               {heatmap.map((row) => (
                 <Fragment key={row.day}>
                   <div key={`label-${row.day}`} className="py-2 text-slate-500">{["Nd", "Pn", "Wt", "Śr", "Cz", "Pt", "Sb"][row.day]}</div>

@@ -169,6 +169,8 @@ model Transaction {
 
   @@unique([householdId, source, externalId])
   @@index([householdId, date])
+  @@index([householdId, deletedAt, date])
+  @@index([householdId, deletedAt, createdAt])
   @@index([categoryId])
   @@index([addedById])
   @@index([deletedAt])

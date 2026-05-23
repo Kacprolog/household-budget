@@ -56,26 +56,22 @@ export default async function DashboardPage() {
   const topCategories = [...byCategory.values()].sort((a, b) => b.value - a.value).slice(0, 5);
 
   const days = eachDayOfInterval({ start: currentFrom, end: now });
-  const dailyNet = days.map((day) => {
-    const key = format(day, "yyyy-MM-dd");
-    return current
-      .filter((transaction) => format(transaction.date, "yyyy-MM-dd") === key)
-      .reduce((sum, item) => sum + (item.type === "income" ? toNumber(item.amount) : -toNumber(item.amount)), 0);
-  });
+  const netByDay = new Map<string, number>();
+  for (const item of current) {
+    const key = format(item.date, "yyyy-MM-dd");
+    netByDay.set(key, (netByDay.get(key) ?? 0) + (item.type === "income" ? toNumber(item.amount) : -toNumber(item.amount)));
+  }
+  const dailyNet = days.map((day) => netByDay.get(format(day, "yyyy-MM-dd")) ?? 0);
   const balanceLine = dailyNet.reduce<{ data: { day: string; saldo: number; trend: number }[]; running: number }>(
     (acc, value, index) => {
       const running = acc.running + value;
-      return {
-        running,
-        data: [
-          ...acc.data,
-          {
-            day: format(days[index], "dd.MM"),
-            saldo: running,
-            trend: days.length > 1 ? (running / (index + 1)) * days.length : running,
-          },
-        ],
-      };
+      acc.running = running;
+      acc.data.push({
+        day: format(days[index], "dd.MM"),
+        saldo: running,
+        trend: days.length > 1 ? (running / (index + 1)) * days.length : running,
+      });
+      return acc;
     },
     { data: [], running: 0 },
   ).data;

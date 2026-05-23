@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { AlertTriangle, BarChart3, Gauge, ListChecks, PiggyBank, Settings, Target } from "lucide-react";
-import { auth } from "@/auth";
 import { QuickAddModal } from "@/components/app/quick-add-modal";
 import { SignOutButton } from "@/components/app/sign-out-button";
 import { ThemeToggle } from "@/components/app/theme-toggle";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -18,15 +17,13 @@ const nav = [
 ];
 
 export async function AppFrame({ children, title }: { children: React.ReactNode; title: string }) {
-  const session = await auth();
-  if (!session?.user?.id) redirect("/login");
+  const user = await requireUser();
 
-  const [user, categories, paymentMethods, descriptions] = await Promise.all([
-    prisma.user.findUniqueOrThrow({ where: { id: session.user.id } }),
-    prisma.category.findMany({ where: { householdId: session.user.householdId }, orderBy: [{ type: "asc" }, { name: "asc" }] }),
-    prisma.paymentMethod.findMany({ where: { householdId: session.user.householdId }, orderBy: { name: "asc" } }),
+  const [categories, paymentMethods, descriptions] = await Promise.all([
+    prisma.category.findMany({ where: { householdId: user.householdId }, orderBy: [{ type: "asc" }, { name: "asc" }] }),
+    prisma.paymentMethod.findMany({ where: { householdId: user.householdId }, orderBy: { name: "asc" } }),
     prisma.transaction.findMany({
-      where: { householdId: session.user.householdId, deletedAt: null, description: { not: null } },
+      where: { householdId: user.householdId, deletedAt: null, description: { not: null } },
       distinct: ["description"],
       take: 30,
       orderBy: { createdAt: "desc" },
