@@ -5,13 +5,13 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 ## Priorytet 0: rzeczy obowiazkowe przed regularnym uzywaniem
 
 - [ ] Zmienic hasla tymczasowe obu kont w aplikacji: **Ustawienia -> Konto**.
-- [ ] Dodac wlasna domene albo zostawic obecny adres Vercel jako oficjalny adres aplikacji.
+- [x] Dodac wlasna domene albo zostawic obecny adres Vercel jako oficjalny adres aplikacji.
 - [ ] Upewnic sie, ze Vercel GitHub App jest zainstalowany dla repo, jesli ma byc natywne polaczenie GitHub -> Vercel w panelu Vercela.
 - [x] Dodac obejscie auto-deploy przez GitHub Actions.
 - [x] Dodac cron/scheduler dla `/api/recurring/run`, zeby transakcje cykliczne wykonywaly sie automatycznie.
 - [x] Dodac automatyczny backup bazy, np. tygodniowy `pg_dump`.
-- [ ] Dodac prosty ekran/status ostatniego backupu.
-- [ ] Przejrzec dane seed i usunac/przerobic przykladowe transakcje, gdy zaczniecie uzywac aplikacji realnie.
+- [x] Dodac prosty ekran/status ostatniego backupu.
+- [x] Przejrzec dane seed i usunac/przerobic przykladowe transakcje, gdy zaczniecie uzywac aplikacji realnie.
 
 ## Priorytet 1: integracja z realnymi wydatkami z konta
 

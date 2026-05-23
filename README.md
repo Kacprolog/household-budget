@@ -84,6 +84,7 @@ Metody płatności: **Ustawienia → Metody płatności**. Domyślnie seed zawie
 ## Backup bazy
 
 Automatyczny backup jest w GitHub Actions: workflow **Database Backup** odpala sie w niedziele o 03:15 UTC i mozna go uruchomic recznie przez **Actions -> Database Backup -> Run workflow**. Backup jest wrzucany jako artifact na 30 dni.
+Status ostatniego backupu jest widoczny w aplikacji: **Ustawienia -> Utrzymanie**.
 
 Reczny backup przez `pg_dump`:
 
@@ -118,6 +119,7 @@ Dla budżetu dwóch osób największe ryzyko limitów to zwykle baza 500 MB przy
 - Bank sync: fundament danych i ekran **Ustawienia -> Banki** pod PSD2/Open Banking.
 - Reguly kategoryzacji: **Ustawienia -> Reguly** pozwala mapowac frazy z opisow transakcji na kategorie i metody platnosci, a import CSV korzysta z tych regul.
 - Edycja transakcji: lista transakcji ma akcje edycji kwoty, daty, opisu, kategorii i metody.
+- Utrzymanie: **Ustawienia -> Utrzymanie** pokazuje oficjalny URL, status backupu/deployu i pozwala ukryc dane demo.
 
 ## Roadmapa
 

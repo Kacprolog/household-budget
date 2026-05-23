@@ -9,6 +9,7 @@ const items = [
   ["Reguły", "/settings/rules", "Automatyczna kategoryzacja opisów i merchantów."],
   ["Metody płatności", "/settings/payment-methods", "Gotówka, karta, przelew, BLIK i własne metody."],
   ["Banki", "/settings/banks", "PSD2/Open Banking i status synchronizacji."],
+  ["Utrzymanie", "/settings/maintenance", "Backupy, URL produkcyjny, deploy i dane demo."],
 ];
 
 export default function SettingsPage() {

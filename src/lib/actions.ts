@@ -431,6 +431,22 @@ export async function syncBankConnections() {
   revalidatePath("/settings/banks");
 }
 
+export async function cleanupDemoTransactions() {
+  const user = await requireUser();
+  await prisma.transaction.updateMany({
+    where: {
+      householdId: user.householdId,
+      id: { startsWith: "sample-" },
+      deletedAt: null,
+    },
+    data: { deletedAt: new Date() },
+  });
+  revalidatePath("/");
+  revalidatePath("/transactions");
+  revalidatePath("/analytics");
+  revalidatePath("/settings/maintenance");
+}
+
 export async function updateAccount(formData: FormData) {
   const user = await requireUser();
   const parsed = z
