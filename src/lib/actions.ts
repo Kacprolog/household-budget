@@ -95,8 +95,20 @@ export async function deleteTransaction(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("id") ?? "");
   await prisma.transaction.updateMany({
-    where: { id, householdId: user.householdId },
+    where: { id, householdId: user.householdId, deletedAt: null },
     data: { deletedAt: new Date() },
+  });
+  revalidatePath("/");
+  revalidatePath("/transactions");
+  revalidatePath("/analytics");
+}
+
+export async function restoreTransaction(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id") ?? "");
+  await prisma.transaction.updateMany({
+    where: { id, householdId: user.householdId, deletedAt: { not: null } },
+    data: { deletedAt: null },
   });
   revalidatePath("/");
   revalidatePath("/transactions");

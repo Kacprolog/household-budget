@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { ArrowDownUp, Download, FileText, Pencil, Search, Trash2, Upload } from "lucide-react";
+import { ArrowDownUp, Download, FileText, Pencil, RotateCcw, Search, Trash2, Upload } from "lucide-react";
 import { AppFrame } from "@/components/app/app-frame";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { deleteTransaction } from "@/lib/actions";
+import { deleteTransaction, restoreTransaction } from "@/lib/actions";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { money, plDate, toNumber } from "@/lib/utils";
@@ -19,10 +19,11 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   const take = 20;
   const sort = sortable.has(params.sort ?? "") ? params.sort! : "date";
   const dir = params.dir === "asc" ? "asc" : "desc";
+  const deletedFilter = params.deleted === "only" ? "only" : params.deleted === "all" ? "all" : "active";
 
   const where = {
     householdId: user.householdId,
-    deletedAt: null,
+    ...(deletedFilter === "active" ? { deletedAt: null } : deletedFilter === "only" ? { deletedAt: { not: null } } : {}),
     ...(params.type ? { type: params.type as "income" | "expense" } : {}),
     ...(params.categoryId ? { categoryId: params.categoryId } : {}),
     ...(params.addedById ? { addedById: params.addedById } : {}),
@@ -73,6 +74,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
             <Select label="Kategoria" name="categoryId" defaultValue={params.categoryId} options={[["", "Wszystkie"], ...categories.map((item) => [item.id, item.name] as [string, string])]} />
             <Select label="Autor" name="addedById" defaultValue={params.addedById} options={[["", "Wszyscy"], ...users.map((item) => [item.id, item.displayName] as [string, string])]} />
             <Select label="Metoda" name="paymentMethodId" defaultValue={params.paymentMethodId} options={[["", "Wszystkie"], ...methods.map((item) => [item.id, item.name] as [string, string])]} />
+            <Select label="Widok" name="deleted" defaultValue={deletedFilter === "active" ? "" : deletedFilter} options={[["", "Aktywne"], ["only", "Usunięte"], ["all", "Wszystkie"]]} />
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-2"><Label htmlFor="from">Od</Label><Input id="from" name="from" type="date" defaultValue={params.from} /></div>
               <div className="space-y-2"><Label htmlFor="to">Do</Label><Input id="to" name="to" type="date" defaultValue={params.to} /></div>
@@ -121,16 +123,25 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                   <td className="p-3">{item.category.name}</td>
                   <td className="p-3">{item.addedBy.displayName}</td>
                   <td className="p-3">{item.paymentMethod.name}</td>
-                  <td className="p-3">{sourceLabel(item.source)}</td>
+                  <td className="p-3">{item.deletedAt ? "Usunięta" : sourceLabel(item.source)}</td>
                   <td className="p-3 text-right">
                     <div className="flex justify-end gap-1">
-                      <Button asChild variant="ghost" size="icon" aria-label="Edytuj">
-                        <Link href={`/transactions/${item.id}/edit`}><Pencil className="h-4 w-4" /></Link>
-                      </Button>
-                      <form action={deleteTransaction}>
-                        <input type="hidden" name="id" value={item.id} />
-                        <Button variant="ghost" size="icon" aria-label="Usuń"><Trash2 className="h-4 w-4" /></Button>
-                      </form>
+                      {item.deletedAt ? (
+                        <form action={restoreTransaction}>
+                          <input type="hidden" name="id" value={item.id} />
+                          <Button variant="ghost" size="icon" aria-label="Przywróć"><RotateCcw className="h-4 w-4" /></Button>
+                        </form>
+                      ) : (
+                        <>
+                          <Button asChild variant="ghost" size="icon" aria-label="Edytuj">
+                            <Link href={`/transactions/${item.id}/edit`}><Pencil className="h-4 w-4" /></Link>
+                          </Button>
+                          <form action={deleteTransaction}>
+                            <input type="hidden" name="id" value={item.id} />
+                            <Button variant="ghost" size="icon" aria-label="Usuń"><Trash2 className="h-4 w-4" /></Button>
+                          </form>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
