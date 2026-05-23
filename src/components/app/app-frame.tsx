@@ -1,19 +1,10 @@
 import Link from "next/link";
-import { AlertTriangle, BarChart3, Gauge, ListChecks, PiggyBank, Settings, Sparkles, Target } from "lucide-react";
+import { AlertTriangle, PiggyBank, Sparkles } from "lucide-react";
 import { DesktopNavLinks, MobileNavLinks } from "@/components/app/nav-links";
 import { QuickAddModal } from "@/components/app/quick-add-modal";
 import { SignOutButton } from "@/components/app/sign-out-button";
 import { ThemeToggle } from "@/components/app/theme-toggle";
 import { requireUser } from "@/lib/session";
-
-const nav = [
-  { href: "/", label: "Dashboard", icon: Gauge },
-  { href: "/transactions", label: "Transakcje", icon: ListChecks },
-  { href: "/budgets", label: "Budżety", icon: PiggyBank },
-  { href: "/goals", label: "Cele", icon: Target },
-  { href: "/analytics", label: "Analityka", icon: BarChart3 },
-  { href: "/settings", label: "Ustawienia", icon: Settings },
-];
 
 export async function AppFrame({ children, title }: { children: React.ReactNode; title: string }) {
   const user = await requireUser();
@@ -30,7 +21,7 @@ export async function AppFrame({ children, title }: { children: React.ReactNode;
             <div className="text-xs text-slate-500 dark:text-slate-400">Wspólne finanse</div>
           </div>
         </Link>
-        <DesktopNavLinks items={nav} />
+        <DesktopNavLinks />
         <div className="absolute inset-x-3 bottom-4 rounded-lg border border-teal-200/70 bg-teal-50/80 p-3 text-xs text-teal-950 shadow-sm dark:border-teal-900/70 dark:bg-teal-950/30 dark:text-teal-100">
           <div className="flex items-center gap-2 font-medium">
             <Sparkles className="h-4 w-4" aria-hidden />
@@ -68,7 +59,7 @@ export async function AppFrame({ children, title }: { children: React.ReactNode;
           </div>
         ) : null}
       </div>
-      <MobileNavLinks items={nav} />
+      <MobileNavLinks />
       <QuickAddModal />
     </div>
   );

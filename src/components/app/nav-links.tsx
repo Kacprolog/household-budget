@@ -2,25 +2,28 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
+import { BarChart3, Gauge, ListChecks, PiggyBank, Settings, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type NavItem = {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-};
+const nav = [
+  { href: "/", label: "Dashboard", icon: Gauge },
+  { href: "/transactions", label: "Transakcje", icon: ListChecks },
+  { href: "/budgets", label: "Budżety", icon: PiggyBank },
+  { href: "/goals", label: "Cele", icon: Target },
+  { href: "/analytics", label: "Analityka", icon: BarChart3 },
+  { href: "/settings", label: "Ustawienia", icon: Settings },
+];
 
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function DesktopNavLinks({ items }: { items: NavItem[] }) {
+export function DesktopNavLinks() {
   const pathname = usePathname();
 
   return (
     <nav className="space-y-1.5">
-      {items.map((item) => {
+      {nav.map((item) => {
         const active = isActive(pathname, item.href);
         return (
           <Link
@@ -49,12 +52,12 @@ export function DesktopNavLinks({ items }: { items: NavItem[] }) {
   );
 }
 
-export function MobileNavLinks({ items }: { items: NavItem[] }) {
+export function MobileNavLinks() {
   const pathname = usePathname();
 
   return (
     <nav className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-6 rounded-lg border border-white/60 bg-white/90 p-1 shadow-[0_16px_44px_rgba(15,23,42,0.16)] backdrop-blur-2xl dark:border-slate-800/80 dark:bg-slate-950/90 md:hidden">
-      {items.map((item) => {
+      {nav.map((item) => {
         const active = isActive(pathname, item.href);
         return (
           <Link
