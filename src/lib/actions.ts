@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { signIn, signOut } from "@/auth";
+import { writeAudit } from "@/lib/audit";
 import { encryptBankTokenPayload, tokenLastFour } from "@/lib/bank-tokens";
 import { markBankConnectionsSynced } from "@/lib/bank-sync";
 import { prisma } from "@/lib/prisma";
@@ -86,6 +87,16 @@ export async function createTransaction(formData: FormData) {
     });
   }
 
+  await writeAudit(prisma, {
+    householdId: user.householdId,
+    userId: user.id,
+    action: "transaction.create",
+    entity: "transaction",
+    entityId: transaction.id,
+    summary: `Dodano ${parsed.type === "income" ? "przychód" : "wydatek"}: ${parsed.amount.toFixed(2)} zł`,
+    metadata: { recurrence: parsed.recurrence },
+  });
+
   revalidatePath("/");
   revalidatePath("/transactions");
   revalidatePath("/analytics");
@@ -94,10 +105,20 @@ export async function createTransaction(formData: FormData) {
 export async function deleteTransaction(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("id") ?? "");
-  await prisma.transaction.updateMany({
+  const result = await prisma.transaction.updateMany({
     where: { id, householdId: user.householdId, deletedAt: null },
     data: { deletedAt: new Date() },
   });
+  if (result.count) {
+    await writeAudit(prisma, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "transaction.delete",
+      entity: "transaction",
+      entityId: id,
+      summary: "Usunięto transakcję",
+    });
+  }
   revalidatePath("/");
   revalidatePath("/transactions");
   revalidatePath("/analytics");
@@ -106,10 +127,20 @@ export async function deleteTransaction(formData: FormData) {
 export async function restoreTransaction(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("id") ?? "");
-  await prisma.transaction.updateMany({
+  const result = await prisma.transaction.updateMany({
     where: { id, householdId: user.householdId, deletedAt: { not: null } },
     data: { deletedAt: null },
   });
+  if (result.count) {
+    await writeAudit(prisma, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "transaction.restore",
+      entity: "transaction",
+      entityId: id,
+      summary: "Przywrócono transakcję",
+    });
+  }
   revalidatePath("/");
   revalidatePath("/transactions");
   revalidatePath("/analytics");
@@ -122,15 +153,31 @@ export async function bulkUpdateTransactions(formData: FormData) {
   if (!ids.length) return;
 
   if (intent === "delete") {
-    await prisma.transaction.updateMany({
+    const result = await prisma.transaction.updateMany({
       where: { id: { in: ids }, householdId: user.householdId, deletedAt: null },
       data: { deletedAt: new Date() },
     });
+    await writeAudit(prisma, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "transaction.bulk_delete",
+      entity: "transaction",
+      summary: `Usunięto zbiorczo transakcje: ${result.count}`,
+      metadata: { count: result.count },
+    });
   }
   if (intent === "restore") {
-    await prisma.transaction.updateMany({
+    const result = await prisma.transaction.updateMany({
       where: { id: { in: ids }, householdId: user.householdId, deletedAt: { not: null } },
       data: { deletedAt: null },
+    });
+    await writeAudit(prisma, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "transaction.bulk_restore",
+      entity: "transaction",
+      summary: `Przywrócono zbiorczo transakcje: ${result.count}`,
+      metadata: { count: result.count },
     });
   }
 
@@ -161,7 +208,7 @@ export async function updateTransaction(formData: FormData) {
       date: formData.get("date"),
     });
 
-  await prisma.transaction.updateMany({
+  const result = await prisma.transaction.updateMany({
     where: { id: parsed.id, householdId: user.householdId, deletedAt: null },
     data: {
       type: parsed.type,
@@ -172,6 +219,16 @@ export async function updateTransaction(formData: FormData) {
       date: new Date(`${parsed.date}T12:00:00`),
     },
   });
+  if (result.count) {
+    await writeAudit(prisma, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "transaction.update",
+      entity: "transaction",
+      entityId: parsed.id,
+      summary: `Zmieniono transakcję: ${parsed.amount.toFixed(2)} zł`,
+    });
+  }
   revalidatePath("/");
   revalidatePath("/transactions");
   revalidatePath(`/transactions/${parsed.id}/edit`);
@@ -210,6 +267,15 @@ export async function updateBudget(formData: FormData) {
       limitAmount: parsed.limitAmount,
     },
   });
+  await writeAudit(prisma, {
+    householdId: user.householdId,
+    userId: user.id,
+    action: "budget.upsert",
+    entity: "budget",
+    entityId: parsed.categoryId,
+    summary: `Ustawiono limit budżetu: ${parsed.limitAmount.toFixed(2)} zł`,
+    metadata: { month: parsed.month },
+  });
   revalidatePath("/");
   revalidatePath("/budgets");
 }
@@ -230,7 +296,7 @@ export async function createGoal(formData: FormData) {
       color: formData.get("color") || "#22c55e",
     });
 
-  await prisma.goal.create({
+  const goal = await prisma.goal.create({
     data: {
       householdId: user.householdId,
       name: parsed.name,
@@ -238,6 +304,14 @@ export async function createGoal(formData: FormData) {
       deadline: parsed.deadline ? new Date(`${parsed.deadline}T12:00:00`) : null,
       color: parsed.color,
     },
+  });
+  await writeAudit(prisma, {
+    householdId: user.householdId,
+    userId: user.id,
+    action: "goal.create",
+    entity: "goal",
+    entityId: goal.id,
+    summary: `Dodano cel: ${goal.name}`,
   });
   revalidatePath("/");
   revalidatePath("/goals");
@@ -288,6 +362,15 @@ export async function contributeGoal(formData: FormData) {
       where: { id: goal.id },
       data: { currentAmount: { increment: parsed.amount } },
     });
+    await writeAudit(tx, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "goal.contribute",
+      entity: "goal",
+      entityId: goal.id,
+      summary: `Dorzucenie do celu: ${goal.name}, ${parsed.amount.toFixed(2)} zł`,
+      metadata: { transactionId: transaction.id },
+    });
   });
 
   revalidatePath("/");
@@ -310,7 +393,7 @@ export async function createCategory(formData: FormData) {
       color: formData.get("color"),
       icon: formData.get("icon"),
     });
-  await prisma.category.upsert({
+  const category = await prisma.category.upsert({
     where: {
       householdId_name_type: {
         householdId: user.householdId,
@@ -320,6 +403,14 @@ export async function createCategory(formData: FormData) {
     },
     update: { color: parsed.color, icon: parsed.icon },
     create: { ...parsed, householdId: user.householdId },
+  });
+  await writeAudit(prisma, {
+    householdId: user.householdId,
+    userId: user.id,
+    action: "category.upsert",
+    entity: "category",
+    entityId: category.id,
+    summary: `Zapisano kategorię: ${category.name}`,
   });
   revalidatePath("/settings/categories");
 }
@@ -331,7 +422,17 @@ export async function deleteCategory(formData: FormData) {
     where: { householdId: user.householdId, categoryId: id, deletedAt: null },
   });
   if (count === 0) {
-    await prisma.category.deleteMany({ where: { id, householdId: user.householdId } });
+    const result = await prisma.category.deleteMany({ where: { id, householdId: user.householdId } });
+    if (result.count) {
+      await writeAudit(prisma, {
+        householdId: user.householdId,
+        userId: user.id,
+        action: "category.delete",
+        entity: "category",
+        entityId: id,
+        summary: "Usunięto kategorię",
+      });
+    }
   }
   revalidatePath("/settings/categories");
 }
@@ -345,10 +446,18 @@ export async function createPaymentMethod(formData: FormData) {
     })
     .parse({ name: formData.get("name"), icon: formData.get("icon") });
 
-  await prisma.paymentMethod.upsert({
+  const method = await prisma.paymentMethod.upsert({
     where: { householdId_name: { householdId: user.householdId, name: parsed.name } },
     update: { icon: parsed.icon },
     create: { ...parsed, householdId: user.householdId },
+  });
+  await writeAudit(prisma, {
+    householdId: user.householdId,
+    userId: user.id,
+    action: "payment_method.upsert",
+    entity: "paymentMethod",
+    entityId: method.id,
+    summary: `Zapisano metodę płatności: ${method.name}`,
   });
   revalidatePath("/settings/payment-methods");
 }
@@ -371,7 +480,7 @@ export async function createCategorizationRule(formData: FormData) {
       priority: formData.get("priority") || 100,
     });
 
-  await prisma.categorizationRule.upsert({
+  const rule = await prisma.categorizationRule.upsert({
     where: {
       householdId_phrase: {
         householdId: user.householdId,
@@ -394,6 +503,14 @@ export async function createCategorizationRule(formData: FormData) {
       priority: parsed.priority,
     },
   });
+  await writeAudit(prisma, {
+    householdId: user.householdId,
+    userId: user.id,
+    action: "categorization_rule.upsert",
+    entity: "categorizationRule",
+    entityId: rule.id,
+    summary: `Zapisano regułę: ${rule.phrase}`,
+  });
   revalidatePath("/settings/rules");
 }
 
@@ -401,19 +518,39 @@ export async function toggleCategorizationRule(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("id") ?? "");
   const isActive = String(formData.get("isActive") ?? "") === "true";
-  await prisma.categorizationRule.updateMany({
+  const result = await prisma.categorizationRule.updateMany({
     where: { id, householdId: user.householdId },
     data: { isActive },
   });
+  if (result.count) {
+    await writeAudit(prisma, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "categorization_rule.toggle",
+      entity: "categorizationRule",
+      entityId: id,
+      summary: isActive ? "Włączono regułę kategoryzacji" : "Wyłączono regułę kategoryzacji",
+    });
+  }
   revalidatePath("/settings/rules");
 }
 
 export async function deleteCategorizationRule(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("id") ?? "");
-  await prisma.categorizationRule.deleteMany({
+  const result = await prisma.categorizationRule.deleteMany({
     where: { id, householdId: user.householdId },
   });
+  if (result.count) {
+    await writeAudit(prisma, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "categorization_rule.delete",
+      entity: "categorizationRule",
+      entityId: id,
+      summary: "Usunięto regułę kategoryzacji",
+    });
+  }
   revalidatePath("/settings/rules");
 }
 
@@ -434,7 +571,7 @@ export async function createBankConnection(formData: FormData) {
     ? encryptBankTokenPayload({ accessToken: parsed.providerToken })
     : null;
 
-  await prisma.bankConnection.create({
+  const connection = await prisma.bankConnection.create({
     data: {
       householdId: user.householdId,
       provider: parsed.provider,
@@ -450,16 +587,35 @@ export async function createBankConnection(formData: FormData) {
             : "Czeka na konfigurację kluczy API dostawcy PSD2 i flow zgody bankowej.",
     },
   });
+  await writeAudit(prisma, {
+    householdId: user.householdId,
+    userId: user.id,
+    action: "bank_connection.create",
+    entity: "bankConnection",
+    entityId: connection.id,
+    summary: `Dodano połączenie bankowe: ${connection.displayName}`,
+    metadata: { provider: connection.provider, status: connection.status },
+  });
   revalidatePath("/settings/banks");
 }
 
 export async function disableBankConnection(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("id") ?? "");
-  await prisma.bankConnection.updateMany({
+  const result = await prisma.bankConnection.updateMany({
     where: { id, householdId: user.householdId },
     data: { status: "disabled" },
   });
+  if (result.count) {
+    await writeAudit(prisma, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "bank_connection.disable",
+      entity: "bankConnection",
+      entityId: id,
+      summary: "Wyłączono połączenie bankowe",
+    });
+  }
   revalidatePath("/settings/banks");
 }
 
@@ -468,6 +624,13 @@ export async function syncBankConnections() {
   await markBankConnectionsSynced({
     householdId: user.householdId,
     status: { in: ["connected", "draft"] },
+  });
+  await writeAudit(prisma, {
+    householdId: user.householdId,
+    userId: user.id,
+    action: "bank_connection.sync",
+    entity: "bankConnection",
+    summary: "Uruchomiono ręczną synchronizację banków",
   });
   revalidatePath("/settings/banks");
 }
@@ -532,6 +695,15 @@ export async function confirmCsvImportBatch(formData: FormData) {
       skippedRows: skipped + batch.duplicateRows + batch.invalidRows,
     },
   });
+  await writeAudit(prisma, {
+    householdId: user.householdId,
+    userId: user.id,
+    action: "import.confirm",
+    entity: "importBatch",
+    entityId: batch.id,
+    summary: `Zatwierdzono import CSV: dodano ${imported}, pominięto ${skipped + batch.duplicateRows + batch.invalidRows}`,
+    metadata: { imported, skipped: skipped + batch.duplicateRows + batch.invalidRows },
+  });
   revalidatePath("/transactions");
   revalidatePath("/settings");
   redirect(`/transactions?imported=${imported}&skipped=${skipped + batch.duplicateRows + batch.invalidRows}`);
@@ -540,17 +712,27 @@ export async function confirmCsvImportBatch(formData: FormData) {
 export async function cancelCsvImportBatch(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("id") ?? "");
-  await prisma.importBatch.updateMany({
+  const result = await prisma.importBatch.updateMany({
     where: { id, householdId: user.householdId, status: "pending" },
     data: { status: "cancelled" },
   });
+  if (result.count) {
+    await writeAudit(prisma, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "import.cancel",
+      entity: "importBatch",
+      entityId: id,
+      summary: "Anulowano import CSV",
+    });
+  }
   revalidatePath("/settings");
   redirect("/settings");
 }
 
 export async function cleanupDemoTransactions() {
   const user = await requireUser();
-  await prisma.transaction.updateMany({
+  const result = await prisma.transaction.updateMany({
     where: {
       householdId: user.householdId,
       id: { startsWith: "sample-" },
@@ -558,6 +740,16 @@ export async function cleanupDemoTransactions() {
     },
     data: { deletedAt: new Date() },
   });
+  if (result.count) {
+    await writeAudit(prisma, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "maintenance.cleanup_demo",
+      entity: "transaction",
+      summary: `Ukryto dane demo: ${result.count}`,
+      metadata: { count: result.count },
+    });
+  }
   revalidatePath("/");
   revalidatePath("/transactions");
   revalidatePath("/analytics");
@@ -576,6 +768,14 @@ export async function updateAccount(formData: FormData) {
       color: formData.get("color"),
     });
   await prisma.user.update({ where: { id: user.id }, data: parsed });
+  await writeAudit(prisma, {
+    householdId: user.householdId,
+    userId: user.id,
+    action: "account.update",
+    entity: "user",
+    entityId: user.id,
+    summary: "Zmieniono ustawienia konta",
+  });
   revalidatePath("/settings/account");
 }
 
@@ -590,6 +790,14 @@ export async function changePassword(formData: FormData) {
   await prisma.user.update({
     where: { id: user.id },
     data: { passwordHash: await bcrypt.hash(nextPassword, 12), mustChangePassword: false },
+  });
+  await writeAudit(prisma, {
+    householdId: user.householdId,
+    userId: user.id,
+    action: "account.change_password",
+    entity: "user",
+    entityId: user.id,
+    summary: "Zmieniono hasło konta",
   });
   redirect("/settings/account?password=changed");
 }

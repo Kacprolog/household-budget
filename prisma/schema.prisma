@@ -84,6 +84,7 @@ model Household {
   bankTransactions    BankTransaction[]
   categorizationRules CategorizationRule[]
   importBatches       ImportBatch[]
+  auditLogs           AuditLog[]
 }
 
 model User {
@@ -102,8 +103,27 @@ model User {
   recurring     RecurringTransaction[]
   contributions GoalContribution[]
   importBatches ImportBatch[]
+  auditLogs     AuditLog[]
 
   @@index([householdId])
+}
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action      String
+  entity      String
+  entityId    String?
+  summary     String
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+
+  @@index([householdId, createdAt])
+  @@index([userId, createdAt])
+  @@index([entity, entityId])
 }
 
 model Category {

@@ -138,6 +138,7 @@ Dla budżetu dwóch osób największe ryzyko limitów to zwykle baza 500 MB przy
 - Kosz transakcji: filtr **Widok -> Usunięte** pozwala przywrócić transakcje po soft-delete.
 - Masowe operacje: w tabeli transakcji można zaznaczyć wiele wierszy i zbiorczo usunąć albo przywrócić.
 - Utrzymanie: **Ustawienia -> Utrzymanie** pokazuje oficjalny URL, status backupu/deployu i pozwala ukryc dane demo.
+- Aktywność: **Ustawienia -> Aktywność** pokazuje ostatnie zmiany w budżecie i ustawieniach, z autorem i czasem.
 - PWA: aplikację można dodać do ekranu głównego telefonu; service worker nie cache'uje danych finansowych offline.
 - Potwierdzenia usuwania: krytyczne akcje kasowania wymagają potwierdzenia w przeglądarce.
 - Smoke test: Playwright sprawdza logowanie, core views, quick-add i eksporty CSV/PDF bez modyfikowania danych.

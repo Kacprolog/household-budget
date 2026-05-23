@@ -11,6 +11,7 @@ const items = [
   ["Metody płatności", "/settings/payment-methods", "Gotówka, karta, przelew, BLIK i własne metody."],
   ["Banki", "/settings/banks", "PSD2/Open Banking i status synchronizacji."],
   ["Utrzymanie", "/settings/maintenance", "Backupy, URL produkcyjny, deploy i dane demo."],
+  ["Aktywność", "/settings/activity", "Historia zmian w budżecie i ustawieniach."],
 ];
 
 export default function SettingsPage() {
