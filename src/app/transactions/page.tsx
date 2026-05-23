@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { deleteTransaction, restoreTransaction } from "@/lib/actions";
+import { bulkUpdateTransactions, deleteTransaction, restoreTransaction } from "@/lib/actions";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { money, plDate, toNumber } from "@/lib/utils";
@@ -90,10 +90,19 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
       </Card>
 
       <Card className="mt-4 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1040px] text-sm">
+        <form action={bulkUpdateTransactions}>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 p-3 dark:border-slate-800">
+            <span className="text-sm text-slate-500">Zaznacz wiersze i wykonaj akcję zbiorczą.</span>
+            <div className="flex gap-2">
+              <Button name="intent" value="delete" variant="outline" size="sm"><Trash2 className="h-4 w-4" /> Usuń zaznaczone</Button>
+              <Button name="intent" value="restore" variant="outline" size="sm"><RotateCcw className="h-4 w-4" /> Przywróć zaznaczone</Button>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[1080px] text-sm">
             <thead className="bg-slate-100 text-left dark:bg-slate-900">
               <tr>
+                <th className="w-10 p-3 font-medium"></th>
                 {[
                   ["date", "Data"],
                   ["type", "Typ"],
@@ -116,6 +125,9 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
             <tbody>
               {transactions.map((item) => (
                 <tr key={item.id} className="border-t border-slate-100 dark:border-slate-800">
+                  <td className="p-3">
+                    <input type="checkbox" name="selectedId" value={item.id} className="h-4 w-4 rounded border-slate-300" aria-label="Zaznacz transakcję" />
+                  </td>
                   <td className="p-3">{plDate(item.date)}</td>
                   <td className="p-3">{item.type === "income" ? "Przychód" : "Wydatek"}</td>
                   <td className={`p-3 font-medium ${item.type === "income" ? "text-green-600" : "text-red-600"}`}>{money(toNumber(item.amount))}</td>
@@ -127,19 +139,13 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                   <td className="p-3 text-right">
                     <div className="flex justify-end gap-1">
                       {item.deletedAt ? (
-                        <form action={restoreTransaction}>
-                          <input type="hidden" name="id" value={item.id} />
-                          <Button variant="ghost" size="icon" aria-label="Przywróć"><RotateCcw className="h-4 w-4" /></Button>
-                        </form>
+                        <Button formAction={restoreTransaction} name="id" value={item.id} variant="ghost" size="icon" aria-label="Przywróć"><RotateCcw className="h-4 w-4" /></Button>
                       ) : (
                         <>
                           <Button asChild variant="ghost" size="icon" aria-label="Edytuj">
                             <Link href={`/transactions/${item.id}/edit`}><Pencil className="h-4 w-4" /></Link>
                           </Button>
-                          <form action={deleteTransaction}>
-                            <input type="hidden" name="id" value={item.id} />
-                            <Button variant="ghost" size="icon" aria-label="Usuń"><Trash2 className="h-4 w-4" /></Button>
-                          </form>
+                          <Button formAction={deleteTransaction} name="id" value={item.id} variant="ghost" size="icon" aria-label="Usuń"><Trash2 className="h-4 w-4" /></Button>
                         </>
                       )}
                     </div>
@@ -148,7 +154,8 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </form>
         <CardContent className="flex items-center justify-between pt-4">
           <span className="text-sm text-slate-500">Wyniki: {total}</span>
           <div className="flex gap-2">

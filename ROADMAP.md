@@ -59,7 +59,7 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 - [x] Dodac pelna edycje transakcji w UI, nie tylko dodawanie i usuwanie.
 - [x] Dodac przywracanie soft-delete transakcji.
 - [ ] Dodac przenoszenie transakcji miedzy kategoriami.
-- [ ] Dodac masowe operacje na transakcjach.
+- [x] Dodac masowe operacje na transakcjach.
 - [ ] Dodac tagi transakcji.
 - [ ] Dodac notatki do kategorii i celow.
 - [ ] Dodac powtarzalne transakcje z ekranem zarzadzania cyklicznoscia.

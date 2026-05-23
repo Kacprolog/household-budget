@@ -115,6 +115,30 @@ export async function restoreTransaction(formData: FormData) {
   revalidatePath("/analytics");
 }
 
+export async function bulkUpdateTransactions(formData: FormData) {
+  const user = await requireUser();
+  const ids = formData.getAll("selectedId").map(String).filter(Boolean);
+  const intent = String(formData.get("intent") ?? "");
+  if (!ids.length) return;
+
+  if (intent === "delete") {
+    await prisma.transaction.updateMany({
+      where: { id: { in: ids }, householdId: user.householdId, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+  }
+  if (intent === "restore") {
+    await prisma.transaction.updateMany({
+      where: { id: { in: ids }, householdId: user.householdId, deletedAt: { not: null } },
+      data: { deletedAt: null },
+    });
+  }
+
+  revalidatePath("/");
+  revalidatePath("/transactions");
+  revalidatePath("/analytics");
+}
+
 export async function updateTransaction(formData: FormData) {
   const user = await requireUser();
   const parsed = z
