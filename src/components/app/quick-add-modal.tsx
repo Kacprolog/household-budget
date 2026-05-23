@@ -2,7 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, X } from "lucide-react";
+import { CalendarDays, CreditCard, Plus, Repeat2, Tags, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,8 @@ export function QuickAddModal() {
   const descriptionId = "description-suggestions";
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const filteredCategories = (data?.categories ?? []).filter((category) => category.type === type);
+  const selectClass =
+    "h-10 w-full rounded-lg border border-slate-200/80 bg-white/80 px-3 text-sm text-slate-950 shadow-sm outline-none transition-all hover:border-slate-300 focus:border-teal-400 focus:ring-4 focus:ring-teal-400/15 disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-50 dark:hover:border-slate-700 dark:focus:border-teal-500";
 
   const loadQuickAddData = useCallback(async () => {
     if (data || loading) return;
@@ -61,7 +63,7 @@ export function QuickAddModal() {
   return (
     <Dialog.Root open={open} onOpenChange={changeOpen}>
       <Dialog.Trigger asChild>
-        <Button className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6 md:right-6" size="icon" title="Nowa transakcja">
+        <Button className="fixed bottom-24 right-4 z-40 h-14 w-14 rounded-full bg-slate-950 text-white shadow-[0_16px_42px_rgba(15,23,42,0.30)] transition-transform hover:scale-105 hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 md:bottom-6 md:right-6" size="icon" title="Nowa transakcja">
           <Plus className="h-7 w-7" />
         </Button>
       </Dialog.Trigger>
@@ -78,13 +80,16 @@ export function QuickAddModal() {
             </Dialog.Overlay>
             <Dialog.Content asChild>
               <motion.div
-                className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-slate-200 bg-white p-5 shadow-xl dark:border-slate-800 dark:bg-slate-950"
+                className="fixed left-1/2 top-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-white/70 bg-white/90 p-5 shadow-[0_28px_90px_rgba(15,23,42,0.28)] backdrop-blur-2xl dark:border-slate-800/80 dark:bg-slate-950/90"
                 initial={{ opacity: 0, scale: 0.96, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.96, y: 12 }}
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <Dialog.Title className="text-lg font-semibold">Nowa transakcja</Dialog.Title>
+                  <div>
+                    <Dialog.Title className="text-lg font-semibold">Nowa transakcja</Dialog.Title>
+                    <Dialog.Description className="text-sm text-slate-500 dark:text-slate-400">Szybki wpis do wspólnego budżetu.</Dialog.Description>
+                  </div>
                   <Dialog.Close asChild>
                     <Button variant="ghost" size="icon" aria-label="Zamknij">
                       <X className="h-5 w-5" />
@@ -100,15 +105,15 @@ export function QuickAddModal() {
                   }}
                   className="grid gap-4"
                 >
-                  {loading ? <div className="rounded-md bg-slate-100 px-3 py-2 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">Ładowanie list...</div> : null}
-                  {error ? <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">{error}</div> : null}
-                  <div className="grid grid-cols-2 rounded-md bg-slate-100 p-1 dark:bg-slate-900">
+                  {loading ? <div className="rounded-lg bg-slate-100/80 px-3 py-2 text-sm text-slate-600 dark:bg-slate-900/80 dark:text-slate-300">Ładowanie list...</div> : null}
+                  {error ? <div className="rounded-lg border border-red-200 bg-red-50/90 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/90 dark:text-red-200">{error}</div> : null}
+                  <div className="grid grid-cols-2 rounded-lg bg-slate-100/80 p-1 shadow-inner dark:bg-slate-900/80">
                     {(["expense", "income"] as const).map((option) => (
                       <button
                         key={option}
                         type="button"
                         onClick={() => setType(option)}
-                        className={`rounded-md px-3 py-2 text-sm font-medium ${type === option ? "bg-white shadow-sm dark:bg-slate-800" : "text-slate-500"}`}
+                        className={`rounded-lg px-3 py-2 text-sm font-medium transition-all ${type === option ? "bg-white text-slate-950 shadow-sm dark:bg-slate-800 dark:text-white" : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-100"}`}
                       >
                         {option === "expense" ? "Wydatek" : "Przychód"}
                       </button>
@@ -121,14 +126,14 @@ export function QuickAddModal() {
                       <Input id="amount" name="amount" inputMode="decimal" step="0.01" min="0.01" type="number" required placeholder="0,00" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="date">Data</Label>
+                      <Label htmlFor="date" className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" aria-hidden /> Data</Label>
                       <Input id="date" name="date" type="date" defaultValue={today} required />
                     </div>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="categoryId">Kategoria</Label>
-                      <select id="categoryId" name="categoryId" required disabled={loading || !filteredCategories.length} className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950">
+                      <Label htmlFor="categoryId" className="inline-flex items-center gap-1.5"><Tags className="h-3.5 w-3.5" aria-hidden /> Kategoria</Label>
+                      <select id="categoryId" name="categoryId" required disabled={loading || !filteredCategories.length} className={selectClass}>
                         {filteredCategories.map((category) => (
                           <option key={category.id} value={category.id}>
                             {category.name}
@@ -137,8 +142,8 @@ export function QuickAddModal() {
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="paymentMethodId">Metoda</Label>
-                      <select id="paymentMethodId" name="paymentMethodId" required disabled={loading || !data?.paymentMethods.length} className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950">
+                      <Label htmlFor="paymentMethodId" className="inline-flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5" aria-hidden /> Metoda</Label>
+                      <select id="paymentMethodId" name="paymentMethodId" required disabled={loading || !data?.paymentMethods.length} className={selectClass}>
                         {data?.paymentMethods.map((method) => (
                           <option key={method.id} value={method.id}>
                             {method.name}
@@ -157,8 +162,8 @@ export function QuickAddModal() {
                     </datalist>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="recurrence">Cykliczność</Label>
-                    <select id="recurrence" name="recurrence" className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950" defaultValue="none">
+                    <Label htmlFor="recurrence" className="inline-flex items-center gap-1.5"><Repeat2 className="h-3.5 w-3.5" aria-hidden /> Cykliczność</Label>
+                    <select id="recurrence" name="recurrence" className={selectClass} defaultValue="none">
                       <option value="none">Nie</option>
                       <option value="weekly">Co tydzień</option>
                       <option value="monthly">Co miesiąc</option>

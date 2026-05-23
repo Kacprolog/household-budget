@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { AlertTriangle, BarChart3, Gauge, ListChecks, PiggyBank, Settings, Target } from "lucide-react";
+import { AlertTriangle, BarChart3, Gauge, ListChecks, PiggyBank, Settings, Sparkles, Target } from "lucide-react";
+import { DesktopNavLinks, MobileNavLinks } from "@/components/app/nav-links";
 import { QuickAddModal } from "@/components/app/quick-add-modal";
 import { SignOutButton } from "@/components/app/sign-out-button";
 import { ThemeToggle } from "@/components/app/theme-toggle";
 import { requireUser } from "@/lib/session";
-import { cn } from "@/lib/utils";
 
 const nav = [
   { href: "/", label: "Dashboard", icon: Gauge },
@@ -19,40 +19,45 @@ export async function AppFrame({ children, title }: { children: React.ReactNode;
   const user = await requireUser();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-slate-200 bg-white px-3 py-4 dark:border-slate-800 dark:bg-slate-950 md:block">
-        <Link href="/" className="mb-6 flex items-center gap-3 px-3">
-          <div className="grid h-10 w-10 place-items-center rounded-md bg-slate-950 text-white dark:bg-white dark:text-slate-950">
-            <PiggyBank className="h-5 w-5" />
+    <div className="min-h-screen bg-transparent text-slate-950 dark:text-slate-50">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r border-white/60 bg-white/70 px-3 py-4 shadow-[16px_0_48px_rgba(15,23,42,0.06)] backdrop-blur-2xl dark:border-slate-800/80 dark:bg-slate-950/70 md:block">
+        <Link href="/" className="mb-7 flex items-center gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-white/50 dark:hover:bg-slate-900/70">
+          <div className="grid h-11 w-11 place-items-center rounded-lg bg-slate-950 text-white shadow-[0_14px_34px_rgba(15,23,42,0.25)] dark:bg-white dark:text-slate-950">
+            <PiggyBank className="h-5 w-5" aria-hidden />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="font-semibold">Budżet domowy</div>
-            <div className="text-xs text-slate-500">Wspólne finanse</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">Wspólne finanse</div>
           </div>
         </Link>
-        <nav className="space-y-1">
-          {nav.map((item) => (
-            <Link key={item.href} href={item.href} className={cn("flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-900")}>
-              <item.icon className="h-5 w-5" />
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </aside>
-      <div className="md:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/90 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
-          <div>
-            <h1 className="text-lg font-semibold">{title}</h1>
-            <p className="text-xs text-slate-500">Zalogowano jako {user.displayName}</p>
+        <DesktopNavLinks items={nav} />
+        <div className="absolute inset-x-3 bottom-4 rounded-lg border border-teal-200/70 bg-teal-50/80 p-3 text-xs text-teal-950 shadow-sm dark:border-teal-900/70 dark:bg-teal-950/30 dark:text-teal-100">
+          <div className="flex items-center gap-2 font-medium">
+            <Sparkles className="h-4 w-4" aria-hidden />
+            Tryb prywatny v1
           </div>
-          <div className="flex items-center gap-1">
+          <p className="mt-1 leading-5 text-teal-800 dark:text-teal-200/80">Dane domowe, szybkie decyzje, bez SaaS-owego hałasu.</p>
+        </div>
+      </aside>
+      <div className="md:pl-72">
+        <header className="sticky top-0 z-20 flex min-h-16 items-center justify-between border-b border-white/60 bg-white/70 px-4 py-3 shadow-[0_1px_0_rgba(255,255,255,0.6)] backdrop-blur-2xl dark:border-slate-800/80 dark:bg-slate-950/70 md:px-6">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h1 className="truncate text-lg font-semibold tracking-normal">{title}</h1>
+              <span className="hidden rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-medium text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300 sm:inline-flex">
+                online
+              </span>
+            </div>
+            <p className="truncate text-xs text-slate-500 dark:text-slate-400">Zalogowano jako {user.displayName}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
             <ThemeToggle />
             <SignOutButton />
           </div>
         </header>
-        <main className="px-4 py-5 pb-28 md:px-6 md:pb-8">{children}</main>
+        <main className="animate-soft-in px-4 py-5 pb-28 md:px-6 md:pb-8">{children}</main>
         {user.mustChangePassword ? (
-          <div className="fixed inset-x-4 bottom-20 z-40 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 shadow-lg dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100 md:left-auto md:right-6 md:bottom-6 md:max-w-md">
+          <div className="fixed inset-x-4 bottom-24 z-40 rounded-lg border border-amber-200 bg-amber-50/95 p-3 text-sm text-amber-900 shadow-lg backdrop-blur-xl dark:border-amber-900 dark:bg-amber-950/95 dark:text-amber-100 md:left-auto md:right-6 md:bottom-6 md:max-w-md">
             <div className="flex gap-2">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               <div>
@@ -63,14 +68,7 @@ export async function AppFrame({ children, title }: { children: React.ReactNode;
           </div>
         ) : null}
       </div>
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 md:hidden">
-        {nav.map((item) => (
-          <Link key={item.href} href={item.href} className="flex h-16 flex-col items-center justify-center gap-1 text-[11px] text-slate-600 dark:text-slate-300">
-            <item.icon className="h-5 w-5" />
-            <span className="max-w-full truncate px-1">{item.label}</span>
-          </Link>
-        ))}
-      </nav>
+      <MobileNavLinks items={nav} />
       <QuickAddModal />
     </div>
   );
