@@ -116,6 +116,8 @@ Dla budżetu dwóch osób największe ryzyko limitów to zwykle baza 500 MB przy
 - Analityka: zakresy, przychody vs wydatki, oszczędności, heatmap, statystyki, autorzy, top transakcje, trendy, forecast, burn rate.
 - Eksport/import: CSV server-side, PDF server-side, import CSV z profilami bankow i deduplikacja.
 - Bank sync: fundament danych i ekran **Ustawienia -> Banki** pod PSD2/Open Banking.
+- Reguly kategoryzacji: **Ustawienia -> Reguly** pozwala mapowac frazy z opisow transakcji na kategorie i metody platnosci, a import CSV korzysta z tych regul.
+- Edycja transakcji: lista transakcji ma akcje edycji kwoty, daty, opisu, kategorii i metody.
 
 ## Roadmapa
 

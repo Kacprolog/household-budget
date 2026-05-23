@@ -1,4 +1,5 @@
-import { ArrowDownUp, Download, FileText, Search, Trash2, Upload } from "lucide-react";
+import Link from "next/link";
+import { ArrowDownUp, Download, FileText, Pencil, Search, Trash2, Upload } from "lucide-react";
 import { AppFrame } from "@/components/app/app-frame";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,7 +89,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
       <Card className="mt-4 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-sm">
+          <table className="w-full min-w-[1040px] text-sm">
             <thead className="bg-slate-100 text-left dark:bg-slate-900">
               <tr>
                 {[
@@ -106,6 +107,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                 <th className="p-3 font-medium">Kategoria</th>
                 <th className="p-3 font-medium">Autor</th>
                 <th className="p-3 font-medium">Metoda</th>
+                <th className="p-3 font-medium">Źródło</th>
                 <th className="p-3 font-medium"></th>
               </tr>
             </thead>
@@ -119,11 +121,17 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                   <td className="p-3">{item.category.name}</td>
                   <td className="p-3">{item.addedBy.displayName}</td>
                   <td className="p-3">{item.paymentMethod.name}</td>
+                  <td className="p-3">{sourceLabel(item.source)}</td>
                   <td className="p-3 text-right">
-                    <form action={deleteTransaction}>
-                      <input type="hidden" name="id" value={item.id} />
-                      <Button variant="ghost" size="icon" aria-label="Usuń"><Trash2 className="h-4 w-4" /></Button>
-                    </form>
+                    <div className="flex justify-end gap-1">
+                      <Button asChild variant="ghost" size="icon" aria-label="Edytuj">
+                        <Link href={`/transactions/${item.id}/edit`}><Pencil className="h-4 w-4" /></Link>
+                      </Button>
+                      <form action={deleteTransaction}>
+                        <input type="hidden" name="id" value={item.id} />
+                        <Button variant="ghost" size="icon" aria-label="Usuń"><Trash2 className="h-4 w-4" /></Button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -140,6 +148,13 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
       </Card>
     </AppFrame>
   );
+}
+
+function sourceLabel(source: string) {
+  if (source === "csv") return "CSV";
+  if (source === "bank") return "Bank";
+  if (source === "recurring") return "Cykliczna";
+  return "Ręczna";
 }
 
 function Select({ label, name, defaultValue, options }: { label: string; name: string; defaultValue?: string; options: [string, string][] }) {

@@ -1,6 +1,7 @@
 import Papa from "papaparse";
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
+import { findRuleMatch } from "@/lib/categorization";
 import { normalizeCsvRow, type CsvProfile } from "@/lib/csv-import";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
@@ -14,9 +15,14 @@ export async function POST(request: NextRequest) {
   const text = await file.text();
   const parsed = Papa.parse<Record<string, string | undefined>>(text, { header: true, skipEmptyLines: true });
 
-  const [categories, methods] = await Promise.all([
+  const [categories, methods, rules] = await Promise.all([
     prisma.category.findMany({ where: { householdId: user.householdId } }),
     prisma.paymentMethod.findMany({ where: { householdId: user.householdId } }),
+    prisma.categorizationRule.findMany({
+      where: { householdId: user.householdId, isActive: true },
+      include: { category: true, paymentMethod: true },
+      orderBy: [{ priority: "asc" }, { createdAt: "asc" }],
+    }),
   ]);
   const fallbackExpense = categories.find((item) => item.type === "expense" && item.name === "Inne") ?? categories.find((item) => item.type === "expense");
   const fallbackIncome = categories.find((item) => item.type === "income" && item.name === "Inne") ?? categories.find((item) => item.type === "income");
@@ -30,8 +36,12 @@ export async function POST(request: NextRequest) {
       skipped += 1;
       continue;
     }
-    const category = categories.find((item) => item.type === normalized.type && item.name.toLowerCase() === normalized.categoryName.toLowerCase()) ?? (normalized.type === "income" ? fallbackIncome : fallbackExpense);
-    const method = methods.find((item) => item.name.toLowerCase() === normalized.methodName.toLowerCase()) ?? fallbackMethod;
+    const rule = findRuleMatch(
+      rules.filter((item) => item.type === normalized.type || item.type === null),
+      normalized.description?.toLowerCase() ?? "",
+    );
+    const category = rule?.category ?? categories.find((item) => item.type === normalized.type && item.name.toLowerCase() === normalized.categoryName.toLowerCase()) ?? (normalized.type === "income" ? fallbackIncome : fallbackExpense);
+    const method = rule?.paymentMethod ?? methods.find((item) => item.name.toLowerCase() === normalized.methodName.toLowerCase()) ?? fallbackMethod;
     if (!category || !method) continue;
     try {
       await prisma.transaction.create({
@@ -48,6 +58,12 @@ export async function POST(request: NextRequest) {
           externalId: `csv:${normalized.externalId}`,
         },
       });
+      if (rule) {
+        await prisma.categorizationRule.update({
+          where: { id: rule.id },
+          data: { matchCount: { increment: 1 }, lastMatchedAt: new Date() },
+        });
+      }
       imported += 1;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {

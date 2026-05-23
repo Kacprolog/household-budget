@@ -6,6 +6,7 @@ import { csvProfiles } from "@/lib/csv-import";
 const items = [
   ["Konto", "/settings/account", "Nazwa wyświetlana, kolor i zmiana hasła."],
   ["Kategorie", "/settings/categories", "Lista kategorii przychodów i wydatków."],
+  ["Reguły", "/settings/rules", "Automatyczna kategoryzacja opisów i merchantów."],
   ["Metody płatności", "/settings/payment-methods", "Gotówka, karta, przelew, BLIK i własne metody."],
   ["Banki", "/settings/banks", "PSD2/Open Banking i status synchronizacji."],
 ];
@@ -13,7 +14,7 @@ const items = [
 export default function SettingsPage() {
   return (
     <AppFrame title="Ustawienia">
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-4 xl:grid-cols-5">
         {items.map(([title, href, description]) => (
           <Link key={href} href={href}>
             <Card className="h-full transition hover:-translate-y-0.5 hover:shadow-md">

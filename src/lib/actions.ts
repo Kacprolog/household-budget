@@ -95,6 +95,46 @@ export async function deleteTransaction(formData: FormData) {
   revalidatePath("/analytics");
 }
 
+export async function updateTransaction(formData: FormData) {
+  const user = await requireUser();
+  const parsed = z
+    .object({
+      id: z.string().min(1),
+      type: z.enum(["income", "expense"]),
+      amount: amountSchema,
+      categoryId: z.string().min(1),
+      paymentMethodId: z.string().min(1),
+      description: z.string().optional(),
+      date: z.string().min(1),
+    })
+    .parse({
+      id: formData.get("id"),
+      type: formData.get("type"),
+      amount: formData.get("amount"),
+      categoryId: formData.get("categoryId"),
+      paymentMethodId: formData.get("paymentMethodId"),
+      description: formData.get("description"),
+      date: formData.get("date"),
+    });
+
+  await prisma.transaction.updateMany({
+    where: { id: parsed.id, householdId: user.householdId, deletedAt: null },
+    data: {
+      type: parsed.type,
+      amount: parsed.amount,
+      categoryId: parsed.categoryId,
+      paymentMethodId: parsed.paymentMethodId,
+      description: parsed.description?.trim() || null,
+      date: new Date(`${parsed.date}T12:00:00`),
+    },
+  });
+  revalidatePath("/");
+  revalidatePath("/transactions");
+  revalidatePath(`/transactions/${parsed.id}/edit`);
+  revalidatePath("/analytics");
+  redirect("/transactions");
+}
+
 export async function updateBudget(formData: FormData) {
   const user = await requireUser();
   const parsed = z
@@ -267,6 +307,70 @@ export async function createPaymentMethod(formData: FormData) {
     create: { ...parsed, householdId: user.householdId },
   });
   revalidatePath("/settings/payment-methods");
+}
+
+export async function createCategorizationRule(formData: FormData) {
+  const user = await requireUser();
+  const parsed = z
+    .object({
+      phrase: z.string().min(2).max(120),
+      type: z.enum(["income", "expense", "all"]),
+      categoryId: z.string().min(1),
+      paymentMethodId: z.string().optional(),
+      priority: z.coerce.number().int().min(1).max(999),
+    })
+    .parse({
+      phrase: formData.get("phrase"),
+      type: formData.get("type"),
+      categoryId: formData.get("categoryId"),
+      paymentMethodId: formData.get("paymentMethodId") || undefined,
+      priority: formData.get("priority") || 100,
+    });
+
+  await prisma.categorizationRule.upsert({
+    where: {
+      householdId_phrase: {
+        householdId: user.householdId,
+        phrase: parsed.phrase.trim(),
+      },
+    },
+    update: {
+      type: parsed.type === "all" ? null : parsed.type,
+      categoryId: parsed.categoryId,
+      paymentMethodId: parsed.paymentMethodId || null,
+      priority: parsed.priority,
+      isActive: true,
+    },
+    create: {
+      householdId: user.householdId,
+      phrase: parsed.phrase.trim(),
+      type: parsed.type === "all" ? null : parsed.type,
+      categoryId: parsed.categoryId,
+      paymentMethodId: parsed.paymentMethodId || null,
+      priority: parsed.priority,
+    },
+  });
+  revalidatePath("/settings/rules");
+}
+
+export async function toggleCategorizationRule(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id") ?? "");
+  const isActive = String(formData.get("isActive") ?? "") === "true";
+  await prisma.categorizationRule.updateMany({
+    where: { id, householdId: user.householdId },
+    data: { isActive },
+  });
+  revalidatePath("/settings/rules");
+}
+
+export async function deleteCategorizationRule(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id") ?? "");
+  await prisma.categorizationRule.deleteMany({
+    where: { id, householdId: user.householdId },
+  });
+  revalidatePath("/settings/rules");
 }
 
 export async function createBankConnection(formData: FormData) {

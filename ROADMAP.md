@@ -30,8 +30,8 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 - [x] Dodac reczne odswiezanie transakcji z banku.
 - [ ] Dodac automatyczne odswiezanie transakcji przez cron, np. raz dziennie.
 - [x] Dodac deduplikacje po `externalTransactionId`, kwocie, dacie i opisie.
-- [ ] Dodac mapowanie transakcji bankowych na kategorie.
-- [ ] Dodac reguly automatycznej kategoryzacji, np. `Biedronka -> Jedzenie`.
+- [x] Dodac mapowanie transakcji bankowych na kategorie.
+- [x] Dodac reguly automatycznej kategoryzacji, np. `Biedronka -> Jedzenie`.
 - [ ] Dodac tryb przegladu importu: nowe transakcje trafiaja najpierw do zatwierdzenia.
 - [x] Dodac oznaczenie zrodla transakcji: reczna / CSV / bank.
 - [ ] Dodac mozliwosc ukrycia albo polaczenia duplikatow miedzy CSV a bank sync.
@@ -56,7 +56,7 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 
 ## Priorytet 3: poprawki funkcjonalne w aplikacji
 
-- [ ] Dodac pelna edycje transakcji w UI, nie tylko dodawanie i usuwanie.
+- [x] Dodac pelna edycje transakcji w UI, nie tylko dodawanie i usuwanie.
 - [ ] Dodac przywracanie soft-delete transakcji.
 - [ ] Dodac przenoszenie transakcji miedzy kategoriami.
 - [ ] Dodac masowe operacje na transakcjach.

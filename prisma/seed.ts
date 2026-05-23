@@ -198,6 +198,34 @@ async function main() {
   });
 
   const savingsCategory = categoryByName.get("expense:Oszczędności")!;
+  const defaultRules = [
+    ["biedronka", "expense:Jedzenie", card.id, 10],
+    ["lidl", "expense:Jedzenie", card.id, 10],
+    ["netflix", "expense:Subskrypcje", card.id, 20],
+    ["spotify", "expense:Subskrypcje", card.id, 20],
+    ["czynsz", "expense:Mieszkanie (czynsz/kredyt)", transfer.id, 10],
+    ["paliwo", "expense:Transport", card.id, 30],
+    ["apteka", "expense:Zdrowie", card.id, 30],
+    ["pensja", "income:Pensja Kacper", transfer.id, 10],
+  ] as const;
+
+  for (const [phrase, categoryKey, paymentMethodId, priority] of defaultRules) {
+    const category = categoryByName.get(categoryKey);
+    if (!category) continue;
+    await prisma.categorizationRule.upsert({
+      where: { householdId_phrase: { householdId: household.id, phrase } },
+      update: { categoryId: category.id, paymentMethodId, priority, isActive: true },
+      create: {
+        householdId: household.id,
+        phrase,
+        type: category.type,
+        categoryId: category.id,
+        paymentMethodId,
+        priority,
+      },
+    });
+  }
+
   await prisma.recurringTransaction.upsert({
     where: { id: "recurring-savings" },
     update: {},
