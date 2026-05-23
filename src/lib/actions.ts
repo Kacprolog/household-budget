@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { startOfMonth } from "date-fns";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { signIn, signOut } from "@/auth";
 import { encryptBankTokenPayload, tokenLastFour } from "@/lib/bank-tokens";
@@ -433,6 +434,82 @@ export async function syncBankConnections() {
     status: { in: ["connected", "draft"] },
   });
   revalidatePath("/settings/banks");
+}
+
+export async function confirmCsvImportBatch(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id") ?? "");
+  const batch = await prisma.importBatch.findFirst({
+    where: { id, householdId: user.householdId, status: "pending" },
+    include: { rows: { where: { status: "ready" }, orderBy: { rowIndex: "asc" } } },
+  });
+  if (!batch) redirect("/settings");
+
+  let imported = 0;
+  let skipped = 0;
+  for (const row of batch.rows) {
+    if (!row.type || !row.amount || !row.date || !row.categoryId || !row.paymentMethodId || !row.externalId) {
+      skipped += 1;
+      await prisma.importRow.update({ where: { id: row.id }, data: { status: "skipped", reason: "Niepełne dane po normalizacji." } });
+      continue;
+    }
+
+    try {
+      const transaction = await prisma.transaction.create({
+        data: {
+          householdId: user.householdId,
+          type: row.type,
+          amount: row.amount,
+          date: row.date,
+          categoryId: row.categoryId,
+          paymentMethodId: row.paymentMethodId,
+          addedById: user.id,
+          description: row.description,
+          source: "csv",
+          externalId: row.externalId,
+        },
+      });
+      await prisma.importRow.update({ where: { id: row.id }, data: { status: "imported", transactionId: transaction.id } });
+      if (row.matchedRuleId) {
+        await prisma.categorizationRule.update({
+          where: { id: row.matchedRuleId },
+          data: { matchCount: { increment: 1 }, lastMatchedAt: new Date() },
+        });
+      }
+      imported += 1;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        skipped += 1;
+        await prisma.importRow.update({ where: { id: row.id }, data: { status: "duplicate", reason: "Transakcja została już zaimportowana." } });
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  await prisma.importBatch.update({
+    where: { id: batch.id },
+    data: {
+      status: "imported",
+      importedAt: new Date(),
+      importedRows: imported,
+      skippedRows: skipped + batch.duplicateRows + batch.invalidRows,
+    },
+  });
+  revalidatePath("/transactions");
+  revalidatePath("/settings");
+  redirect(`/transactions?imported=${imported}&skipped=${skipped + batch.duplicateRows + batch.invalidRows}`);
+}
+
+export async function cancelCsvImportBatch(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id") ?? "");
+  await prisma.importBatch.updateMany({
+    where: { id, householdId: user.householdId, status: "pending" },
+    data: { status: "cancelled" },
+  });
+  revalidatePath("/settings");
+  redirect("/settings");
 }
 
 export async function cleanupDemoTransactions() {

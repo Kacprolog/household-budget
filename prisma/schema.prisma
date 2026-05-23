@@ -53,6 +53,20 @@ enum BankConnectionStatus {
   disabled
 }
 
+enum ImportBatchStatus {
+  pending
+  imported
+  cancelled
+}
+
+enum ImportRowStatus {
+  ready
+  invalid
+  duplicate
+  imported
+  skipped
+}
+
 model Household {
   id                  String                 @id @default(cuid())
   name                String
@@ -69,6 +83,7 @@ model Household {
   bankAccounts        BankAccount[]
   bankTransactions    BankTransaction[]
   categorizationRules CategorizationRule[]
+  importBatches       ImportBatch[]
 }
 
 model User {
@@ -86,6 +101,7 @@ model User {
   transactions  Transaction[]          @relation("TransactionAuthor")
   recurring     RecurringTransaction[]
   contributions GoalContribution[]
+  importBatches ImportBatch[]
 
   @@index([householdId])
 }
@@ -310,4 +326,49 @@ model CategorizationRule {
 
   @@unique([householdId, phrase])
   @@index([householdId, isActive, priority])
+}
+
+model ImportBatch {
+  id          String            @id @default(cuid())
+  householdId String
+  household   Household         @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   User             @relation(fields: [uploadedById], references: [id])
+  filename    String
+  profile     String
+  status      ImportBatchStatus @default(pending)
+  totalRows   Int               @default(0)
+  readyRows   Int               @default(0)
+  duplicateRows Int             @default(0)
+  invalidRows Int               @default(0)
+  importedRows Int              @default(0)
+  skippedRows Int               @default(0)
+  createdAt   DateTime          @default(now())
+  importedAt  DateTime?
+  rows        ImportRow[]
+
+  @@index([householdId, createdAt])
+}
+
+model ImportRow {
+  id              String          @id @default(cuid())
+  batchId         String
+  batch           ImportBatch     @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  rowIndex        Int
+  status          ImportRowStatus
+  reason          String?
+  type            TransactionType?
+  amount          Decimal?        @db.Decimal(12, 2)
+  date            DateTime?
+  description     String?
+  categoryId      String?
+  paymentMethodId String?
+  externalId      String?
+  matchedRuleId   String?
+  raw             Json?
+  transactionId   String?
+  createdAt       DateTime        @default(now())
+
+  @@index([batchId, status])
+  @@index([externalId])
 }

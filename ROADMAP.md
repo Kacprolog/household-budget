@@ -32,7 +32,7 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 - [x] Dodac deduplikacje po `externalTransactionId`, kwocie, dacie i opisie.
 - [x] Dodac mapowanie transakcji bankowych na kategorie.
 - [x] Dodac reguly automatycznej kategoryzacji, np. `Biedronka -> Jedzenie`.
-- [ ] Dodac tryb przegladu importu: nowe transakcje trafiaja najpierw do zatwierdzenia.
+- [x] Dodac tryb przegladu importu: nowe transakcje trafiaja najpierw do zatwierdzenia.
 - [x] Dodac oznaczenie zrodla transakcji: reczna / CSV / bank.
 - [ ] Dodac mozliwosc ukrycia albo polaczenia duplikatow miedzy CSV a bank sync.
 - [x] Nigdy nie przechowywac loginu ani hasla do banku.
@@ -49,10 +49,10 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
   - Pekao,
   - Revolut.
 - [ ] Dodac ekran mapowania kolumn CSV przed importem.
-- [ ] Dodac podglad 10 pierwszych wierszy przed zatwierdzeniem importu.
+- [x] Dodac podglad 10 pierwszych wierszy przed zatwierdzeniem importu.
 - [x] Dodac wykrywanie separatora i formatu kwoty.
-- [ ] Dodac raport po imporcie: dodane, pominiete, zdublowane, wymagajace uwagi.
-- [ ] Dodac reguly kategoryzacji na podstawie odbiorcy/nadawcy/opisu.
+- [x] Dodac raport po imporcie: dodane, pominiete, zdublowane, wymagajace uwagi.
+- [x] Dodac reguly kategoryzacji na podstawie odbiorcy/nadawcy/opisu.
 
 ## Priorytet 3: poprawki funkcjonalne w aplikacji
 
