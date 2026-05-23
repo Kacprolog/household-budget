@@ -102,7 +102,7 @@ Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego h
 ## Priorytet 6: bezpieczenstwo i stabilnosc
 
 - [x] Zrobic pierwszy pass wydajnosci: cache sesji/uzytkownika, indeksy transakcji i lzejsze agregacje dashboard/analityka.
-- [ ] Dodac testy jednostkowe dla funkcji finansowych.
+- [x] Dodac testy jednostkowe dla funkcji finansowych i normalizacji CSV.
 - [ ] Dodac testy integracyjne dla server actions.
 - [x] Dodac bezpieczny smoke e2e Playwright: login, core views, quick-add, eksport CSV/PDF bez modyfikowania danych.
 - [ ] Dodac osobny test e2e na dodanie transakcji w bazie testowej/staging.

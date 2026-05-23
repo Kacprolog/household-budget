@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run --config vitest.config.ts",
     "e2e": "playwright test",
     "e2e:prod": "playwright test --project=chromium",
     "db:validate": "prisma validate",
@@ -63,6 +64,7 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "tsx": "^4.22.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.7"
   }
 }
