@@ -13,6 +13,7 @@ export type NormalizedCsvTransaction = {
 };
 
 type CsvRow = Record<string, string | undefined>;
+export type CsvColumnMapping = Partial<Record<"date" | "amount" | "description" | "category" | "method" | "type", string>>;
 
 const profileColumns: Record<CsvProfile, Partial<Record<"date" | "amount" | "description" | "category" | "method" | "type", string[]>>> = {
   auto: {},
@@ -71,19 +72,20 @@ export const csvProfiles: { value: CsvProfile; label: string }[] = [
   { value: "revolut", label: "Revolut" },
 ];
 
-export function normalizeCsvRow(row: CsvRow, profile: CsvProfile): NormalizedCsvTransaction | null {
-  const date = normalizeDate(pick(row, profile, "date") ?? row.data ?? row.date);
-  const rawAmount = pick(row, profile, "amount") ?? row.kwota ?? row.amount;
+export function normalizeCsvRow(row: CsvRow, profile: CsvProfile, mapping: CsvColumnMapping = {}): NormalizedCsvTransaction | null {
+  const date = normalizeDate(mapped(row, mapping, "date") ?? pick(row, profile, "date") ?? row.data ?? row.date);
+  const rawAmount = mapped(row, mapping, "amount") ?? pick(row, profile, "amount") ?? row.kwota ?? row.amount;
   const amount = parseAmount(rawAmount);
   if (!date || !amount) return null;
 
-  const rawType = (pick(row, profile, "type") ?? row.typ ?? row.type ?? "").toLowerCase();
+  const rawType = (mapped(row, mapping, "type") ?? pick(row, profile, "type") ?? row.typ ?? row.type ?? "").toLowerCase();
   const type = rawType.includes("income") || rawType.includes("przych") || amount > 0 ? "income" : "expense";
-  const description = cleanText(pick(row, profile, "description") ?? row.opis ?? row.description ?? row.tytul ?? row["Tytuł"]);
-  const categoryName = cleanText(pick(row, profile, "category") ?? row.kategoria ?? row.category) ?? "";
-  const methodName = cleanText(pick(row, profile, "method") ?? row.metoda ?? row.method) ?? "";
+  const description = cleanText(mapped(row, mapping, "description") ?? pick(row, profile, "description") ?? row.opis ?? row.description ?? row.tytul ?? row["Tytuł"]);
+  const categoryName = cleanText(mapped(row, mapping, "category") ?? pick(row, profile, "category") ?? row.kategoria ?? row.category) ?? "";
+  const methodName = cleanText(mapped(row, mapping, "method") ?? pick(row, profile, "method") ?? row.metoda ?? row.method) ?? "";
   const absoluteAmount = Math.abs(amount);
-  const externalId = fingerprint([profile, date, absoluteAmount.toFixed(2), description ?? "", categoryName, methodName]);
+  const mappingKey = Object.entries(mapping).sort(([a], [b]) => a.localeCompare(b)).map(([field, column]) => `${field}:${column}`).join(",");
+  const externalId = fingerprint([profile, mappingKey, date, absoluteAmount.toFixed(2), description ?? "", categoryName, methodName]);
 
   return {
     date,
@@ -94,6 +96,12 @@ export function normalizeCsvRow(row: CsvRow, profile: CsvProfile): NormalizedCsv
     description,
     externalId,
   };
+}
+
+function mapped(row: CsvRow, mapping: CsvColumnMapping, field: keyof CsvColumnMapping) {
+  const column = mapping[field];
+  if (!column) return undefined;
+  return row[column] ?? row[column.toLowerCase()] ?? row[column.toUpperCase()];
 }
 
 function pick(row: CsvRow, profile: CsvProfile, field: "date" | "amount" | "description" | "category" | "method" | "type") {

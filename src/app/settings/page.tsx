@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppFrame } from "@/components/app/app-frame";
+import { CsvImportForm } from "@/components/settings/csv-import-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { csvProfiles } from "@/lib/csv-import";
 
@@ -28,18 +29,7 @@ export default function SettingsPage() {
       <Card id="csv" className="mt-4">
         <CardHeader><CardTitle>Import CSV</CardTitle></CardHeader>
         <CardContent>
-          <form action="/api/import/csv" method="post" encType="multipart/form-data" className="grid gap-3 lg:grid-cols-[220px_1fr_auto_auto]">
-            <select name="profile" className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950" defaultValue="auto">
-              {csvProfiles.map((profile) => (
-                <option key={profile.value} value={profile.value}>
-                  {profile.label}
-                </option>
-              ))}
-            </select>
-            <input name="file" type="file" accept=".csv,text/csv" required className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950" />
-            <button name="mode" value="preview" className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-slate-950">Podgląd</button>
-            <button name="mode" value="import" className="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium dark:border-slate-800">Importuj od razu</button>
-          </form>
+          <CsvImportForm profiles={csvProfiles} />
           <p className="mt-2 text-sm text-slate-500">Obsługiwane kolumny: data, typ, kwota, kategoria, metoda, opis. Domyślnie zobaczysz podgląd 50 pierwszych wierszy i raport duplikatów przed zapisem.</p>
         </CardContent>
       </Card>

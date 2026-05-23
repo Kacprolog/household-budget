@@ -2,7 +2,7 @@ import Papa from "papaparse";
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { findRuleMatch } from "@/lib/categorization";
-import { normalizeCsvRow, type CsvProfile } from "@/lib/csv-import";
+import { normalizeCsvRow, type CsvColumnMapping, type CsvProfile } from "@/lib/csv-import";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 
@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
   const file = form.get("file");
   const profile = String(form.get("profile") ?? "auto") as CsvProfile;
   const mode = String(form.get("mode") ?? "preview");
+  const mapping = readColumnMapping(form);
   if (!(file instanceof File)) return NextResponse.json({ error: "Brak pliku" }, { status: 400 });
   const text = await file.text();
   const parsed = Papa.parse<Record<string, string | undefined>>(text, { header: true, skipEmptyLines: true });
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
   const fallbackMethod = methods.find((item) => item.name === "Gotówka") ?? methods[0];
 
   if (mode === "preview") {
-    const normalizedRows = parsed.data.map((row, index) => ({ row, index, normalized: normalizeCsvRow(row, profile) }));
+    const normalizedRows = parsed.data.map((row, index) => ({ row, index, normalized: normalizeCsvRow(row, profile, mapping) }));
     const externalIds = normalizedRows
       .map((item) => item.normalized?.externalId)
       .filter(Boolean)
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
         householdId: user.householdId,
         uploadedById: user.id,
         filename: file.name,
-        profile,
+        profile: mappingLabel(profile, mapping),
         totalRows: rows.length,
         readyRows,
         duplicateRows,
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
   let imported = 0;
   let skipped = 0;
   for (const row of parsed.data) {
-    const normalized = normalizeCsvRow(row, profile);
+    const normalized = normalizeCsvRow(row, profile, mapping);
     if (!normalized) {
       skipped += 1;
       continue;
@@ -159,4 +160,26 @@ export async function POST(request: NextRequest) {
 
 function sanitizeRow(row: Record<string, string | undefined>) {
   return Object.fromEntries(Object.entries(row).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
+}
+
+function readColumnMapping(form: FormData): CsvColumnMapping {
+  return {
+    date: formValue(form, "map_date"),
+    amount: formValue(form, "map_amount"),
+    description: formValue(form, "map_description"),
+    category: formValue(form, "map_category"),
+    method: formValue(form, "map_method"),
+    type: formValue(form, "map_type"),
+  };
+}
+
+function formValue(form: FormData, key: string) {
+  const value = String(form.get(key) ?? "").trim();
+  return value || undefined;
+}
+
+function mappingLabel(profile: CsvProfile, mapping: CsvColumnMapping) {
+  const active = Object.entries(mapping).filter(([, column]) => Boolean(column));
+  if (!active.length) return profile;
+  return `${profile}: ${active.map(([field, column]) => `${field}=${column}`).join(", ")}`;
 }

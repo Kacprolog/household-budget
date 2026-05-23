@@ -48,7 +48,7 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
   - Alior,
   - Pekao,
   - Revolut.
-- [ ] Dodac ekran mapowania kolumn CSV przed importem.
+- [x] Dodac ekran mapowania kolumn CSV przed importem.
 - [x] Dodac podglad 10 pierwszych wierszy przed zatwierdzeniem importu.
 - [x] Dodac wykrywanie separatora i formatu kwoty.
 - [x] Dodac raport po imporcie: dodane, pominiete, zdublowane, wymagajace uwagi.
