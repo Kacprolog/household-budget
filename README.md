@@ -31,6 +31,18 @@ Po pierwszym logowaniu aplikacja pokaże ostrzeżenie o haśle tymczasowym. Wejd
    ```
 5. Otwórz `http://localhost:3000`.
 
+## Smoke test produkcji
+
+Najważniejszy przepływ prywatnej v1 można sprawdzić Playwrightem bez dopisywania testowych transakcji do budżetu:
+
+```bash
+$env:E2E_LOGIN="kacper"
+$env:E2E_PASSWORD="twoje_aktualne_haslo"
+npm run e2e:prod
+```
+
+Test loguje się, sprawdza Dashboard, Transakcje, modal szybkiego dodawania oraz eksport CSV/PDF. W GitHub Actions jest ręczny workflow **Production Smoke**; używa sekretów `E2E_LOGIN` i `E2E_PASSWORD`.
+
 ## Deployment: Supabase + Vercel
 
 1. Supabase: utwórz projekt na [supabase.com](https://supabase.com), wejdź w **Project Settings → Database → Connection string** i skopiuj connection string PostgreSQL. Do Vercela najlepiej wklej pooler/transaction URL, jeśli Supabase go pokazuje.
@@ -128,6 +140,7 @@ Dla budżetu dwóch osób największe ryzyko limitów to zwykle baza 500 MB przy
 - Utrzymanie: **Ustawienia -> Utrzymanie** pokazuje oficjalny URL, status backupu/deployu i pozwala ukryc dane demo.
 - PWA: aplikację można dodać do ekranu głównego telefonu; service worker nie cache'uje danych finansowych offline.
 - Potwierdzenia usuwania: krytyczne akcje kasowania wymagają potwierdzenia w przeglądarce.
+- Smoke test: Playwright sprawdza logowanie, core views, quick-add i eksporty CSV/PDF bez modyfikowania danych.
 
 ## Roadmapa
 

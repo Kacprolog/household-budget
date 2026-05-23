@@ -104,7 +104,8 @@ Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego h
 - [x] Zrobic pierwszy pass wydajnosci: cache sesji/uzytkownika, indeksy transakcji i lzejsze agregacje dashboard/analityka.
 - [ ] Dodac testy jednostkowe dla funkcji finansowych.
 - [ ] Dodac testy integracyjne dla server actions.
-- [ ] Dodac testy e2e Playwright: login, dodanie transakcji, eksport CSV/PDF.
+- [x] Dodac bezpieczny smoke e2e Playwright: login, core views, quick-add, eksport CSV/PDF bez modyfikowania danych.
+- [ ] Dodac osobny test e2e na dodanie transakcji w bazie testowej/staging.
 - [ ] Dodac walidacje uprawnien we wszystkich akcjach modyfikujacych dane.
 - [ ] Dodac audyt zdarzen: kto co dodal/zmienil/usunal.
 - [ ] Dodac rate limiting dla innych wrazliwych endpointow, nie tylko loginu.
