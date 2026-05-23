@@ -3,6 +3,7 @@ import { ArrowDownUp, Download, FileText, Pencil, RotateCcw, Search, Trash2, Upl
 import { AppFrame } from "@/components/app/app-frame";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { bulkUpdateTransactions, deleteTransaction, restoreTransaction } from "@/lib/actions";
@@ -105,7 +106,9 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 p-3 dark:border-slate-800">
             <span className="text-sm text-slate-500">Zaznacz wiersze i wykonaj akcję zbiorczą.</span>
             <div className="flex gap-2">
-              <Button name="intent" value="delete" variant="outline" size="sm"><Trash2 className="h-4 w-4" /> Usuń zaznaczone</Button>
+              <ConfirmSubmitButton name="intent" value="delete" variant="outline" size="sm" message="Usunąć zaznaczone transakcje? Będzie można je przywrócić z widoku Usunięte.">
+                <Trash2 className="h-4 w-4" /> Usuń zaznaczone
+              </ConfirmSubmitButton>
               <Button name="intent" value="restore" variant="outline" size="sm"><RotateCcw className="h-4 w-4" /> Przywróć zaznaczone</Button>
             </div>
           </div>
@@ -156,7 +159,9 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                           <Button asChild variant="ghost" size="icon" aria-label="Edytuj">
                             <Link href={`/transactions/${item.id}/edit`}><Pencil className="h-4 w-4" /></Link>
                           </Button>
-                          <Button formAction={deleteTransaction} name="id" value={item.id} variant="ghost" size="icon" aria-label="Usuń"><Trash2 className="h-4 w-4" /></Button>
+                          <ConfirmSubmitButton formAction={deleteTransaction} name="id" value={item.id} variant="ghost" size="icon" aria-label="Usuń" message="Usunąć tę transakcję? Będzie można ją przywrócić z widoku Usunięte.">
+                            <Trash2 className="h-4 w-4" />
+                          </ConfirmSubmitButton>
                         </>
                       )}
                     </div>

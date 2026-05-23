@@ -2,6 +2,7 @@ import { Trash2 } from "lucide-react";
 import { AppFrame } from "@/components/app/app-frame";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createCategory, deleteCategory } from "@/lib/actions";
@@ -45,9 +46,9 @@ export default async function CategoriesPage() {
               </div>
               <form action={deleteCategory}>
                 <input type="hidden" name="id" value={category.id} />
-                <Button variant="ghost" size="icon" disabled={category._count.transactions > 0} title={category._count.transactions > 0 ? "Najpierw przenieś transakcje" : "Usuń"}>
+                <ConfirmSubmitButton variant="ghost" size="icon" disabled={category._count.transactions > 0} title={category._count.transactions > 0 ? "Najpierw przenieś transakcje" : "Usuń"} message={`Usunąć kategorię "${category.name}"?`}>
                   <Trash2 className="h-4 w-4" />
-                </Button>
+                </ConfirmSubmitButton>
               </form>
             </div>
           ))}

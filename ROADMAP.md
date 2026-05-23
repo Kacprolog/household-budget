@@ -2,6 +2,8 @@
 
 Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialajacym deployu aplikacji budzetowej.
 
+Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego household. SaaS, subskrypcje, multi-tenant, publiczny onboarding i landing page zostaja odlozone.
+
 ## Priorytet 0: rzeczy obowiazkowe przed regularnym uzywaniem
 
 - [x] Wymusic i oznaczyc zmiane hasel tymczasowych obu kont w aplikacji: **Ustawienia -> Konto**.
@@ -86,12 +88,12 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 
 ## Priorytet 5: UX i mobile
 
-- [ ] Dodac PWA, zeby aplikacje mozna bylo zainstalowac na telefonie.
-- [ ] Dodac manifest, ikony i service worker.
+- [x] Dodac PWA, zeby aplikacje mozna bylo zainstalowac na telefonie.
+- [x] Dodac manifest, ikony i service worker.
 - [ ] Dodac lepszy pusty stan dla nowych kont bez danych.
 - [ ] Dodac skeleton loading dla wykresow.
 - [ ] Dodac toast po dodaniu/edycji/usunieciu danych.
-- [ ] Dodac potwierdzenia dla usuwania transakcji/kategorii/celow.
+- [x] Dodac potwierdzenia dla usuwania transakcji/kategorii/regul/danych demo.
 - [ ] Dodac wyszukiwarke globalna.
 - [ ] Dodac szybkie akcje na mobile.
 - [ ] Dodac widget "dodaj wydatek" z minimalnym formularzem.

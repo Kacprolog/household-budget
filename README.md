@@ -2,6 +2,8 @@
 
 Pełna aplikacja Next.js do wspólnego zarządzania budżetem dla dwóch osób. UI jest po polsku, działa responsywnie, ma dark mode, Auth.js Credentials, Prisma/PostgreSQL, dashboard, analitykę, budżety, cele, import CSV oraz eksport CSV/PDF.
 
+Projekt jest obecnie domykany jako prywatna wersja v1 dla jednego wspólnego household. Funkcje SaaS, takie jak subskrypcje, billing, onboarding wielu par i publiczny landing page, są poza zakresem tej wersji.
+
 ## Konta seed
 
 | Login | Hasło tymczasowe | Rola |
@@ -124,6 +126,8 @@ Dla budżetu dwóch osób największe ryzyko limitów to zwykle baza 500 MB przy
 - Kosz transakcji: filtr **Widok -> Usunięte** pozwala przywrócić transakcje po soft-delete.
 - Masowe operacje: w tabeli transakcji można zaznaczyć wiele wierszy i zbiorczo usunąć albo przywrócić.
 - Utrzymanie: **Ustawienia -> Utrzymanie** pokazuje oficjalny URL, status backupu/deployu i pozwala ukryc dane demo.
+- PWA: aplikację można dodać do ekranu głównego telefonu; service worker nie cache'uje danych finansowych offline.
+- Potwierdzenia usuwania: krytyczne akcje kasowania wymagają potwierdzenia w przeglądarce.
 
 ## Roadmapa
 

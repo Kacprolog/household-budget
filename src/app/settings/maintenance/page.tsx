@@ -3,6 +3,7 @@ import { AppFrame } from "@/components/app/app-frame";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { cleanupDemoTransactions } from "@/lib/actions";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
@@ -92,10 +93,10 @@ export default async function MaintenancePage() {
               Aktywne przykładowe transakcje z seeda: {demoCount}. Gdy zaczniecie używać aplikacji realnie, można je ukryć soft-delete.
             </p>
             <form action={cleanupDemoTransactions}>
-              <Button variant="destructive" disabled={demoCount === 0}>
+              <ConfirmSubmitButton variant="destructive" disabled={demoCount === 0} message="Ukryć wszystkie przykładowe transakcje demo? Te wpisy zostaną oznaczone jako usunięte.">
                 <Trash2 className="h-4 w-4" />
                 Usuń dane demo
-              </Button>
+              </ConfirmSubmitButton>
             </form>
           </CardContent>
         </Card>

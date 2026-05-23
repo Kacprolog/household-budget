@@ -3,6 +3,7 @@ import { AppFrame } from "@/components/app/app-frame";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createCategorizationRule, deleteCategorizationRule, toggleCategorizationRule } from "@/lib/actions";
@@ -89,7 +90,9 @@ export default async function RulesPage() {
                 </form>
                 <form action={deleteCategorizationRule}>
                   <input type="hidden" name="id" value={rule.id} />
-                  <Button variant="ghost" size="icon" aria-label="Usuń"><Trash2 className="h-4 w-4" /></Button>
+                  <ConfirmSubmitButton variant="ghost" size="icon" aria-label="Usuń" message={`Usunąć regułę "${rule.phrase}"?`}>
+                    <Trash2 className="h-4 w-4" />
+                  </ConfirmSubmitButton>
                 </form>
               </div>
             </div>
