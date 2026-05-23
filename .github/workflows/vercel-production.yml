@@ -20,6 +20,9 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm run db:deploy
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
       - run: npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
       - run: npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
       - run: npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
