@@ -42,15 +42,26 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   const [transactions, total, categories, users, methods] = await Promise.all([
     prisma.transaction.findMany({
       where,
-      include: { category: true, addedBy: true, paymentMethod: true },
+      select: {
+        id: true,
+        type: true,
+        amount: true,
+        description: true,
+        date: true,
+        source: true,
+        deletedAt: true,
+        category: { select: { name: true } },
+        addedBy: { select: { displayName: true } },
+        paymentMethod: { select: { name: true } },
+      },
       orderBy: { [sort]: dir },
       skip: (page - 1) * take,
       take,
     }),
     prisma.transaction.count({ where }),
-    prisma.category.findMany({ where: { householdId: user.householdId }, orderBy: { name: "asc" } }),
-    prisma.user.findMany({ where: { householdId: user.householdId }, orderBy: { displayName: "asc" } }),
-    prisma.paymentMethod.findMany({ where: { householdId: user.householdId }, orderBy: { name: "asc" } }),
+    prisma.category.findMany({ where: { householdId: user.householdId }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    prisma.user.findMany({ where: { householdId: user.householdId }, orderBy: { displayName: "asc" }, select: { id: true, displayName: true } }),
+    prisma.paymentMethod.findMany({ where: { householdId: user.householdId }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
 
   const query = new URLSearchParams(Object.entries(params).filter(([, value]) => value) as [string, string][]);

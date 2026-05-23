@@ -19,7 +19,17 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
 
   const transactions = await prisma.transaction.findMany({
     where: { householdId: user.householdId, deletedAt: null, date: { gte: range.from, lte: range.to } },
-    include: { category: true, addedBy: true },
+    select: {
+      id: true,
+      type: true,
+      amount: true,
+      date: true,
+      description: true,
+      categoryId: true,
+      addedById: true,
+      category: { select: { name: true, color: true } },
+      addedBy: { select: { displayName: true, color: true } },
+    },
     orderBy: { date: "asc" },
   });
 

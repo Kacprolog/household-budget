@@ -20,21 +20,35 @@ export default async function DashboardPage() {
   const [current, previous, budgets, recent, goals] = await Promise.all([
     prisma.transaction.findMany({
       where: { householdId: user.householdId, deletedAt: null, date: { gte: currentFrom, lte: currentTo } },
-      include: { category: true, addedBy: true, paymentMethod: true },
+      select: {
+        type: true,
+        amount: true,
+        date: true,
+        categoryId: true,
+        category: { select: { name: true, color: true } },
+      },
       orderBy: { date: "asc" },
     }),
     prisma.transaction.findMany({
       where: { householdId: user.householdId, deletedAt: null, date: { gte: previousFrom, lte: previousTo } },
-      include: { category: true },
+      select: { type: true, amount: true, category: { select: { name: true } } },
     }),
     prisma.budget.findMany({
       where: { householdId: user.householdId, month: currentFrom },
-      include: { category: true },
+      select: { categoryId: true, limitAmount: true, category: { select: { name: true } } },
       orderBy: { category: { name: "asc" } },
     }),
     prisma.transaction.findMany({
       where: { householdId: user.householdId, deletedAt: null },
-      include: { category: true, addedBy: true },
+      select: {
+        id: true,
+        type: true,
+        amount: true,
+        description: true,
+        date: true,
+        category: { select: { name: true } },
+        addedBy: { select: { displayName: true } },
+      },
       orderBy: { date: "desc" },
       take: 5,
     }),

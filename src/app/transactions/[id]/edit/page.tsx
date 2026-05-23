@@ -17,10 +17,19 @@ export default async function EditTransactionPage({ params }: { params: Promise<
   const [transaction, categories, methods] = await Promise.all([
     prisma.transaction.findFirst({
       where: { id, householdId: user.householdId, deletedAt: null },
-      include: { category: true, paymentMethod: true },
+      select: {
+        id: true,
+        type: true,
+        amount: true,
+        description: true,
+        date: true,
+        categoryId: true,
+        paymentMethodId: true,
+        category: { select: { name: true } },
+      },
     }),
-    prisma.category.findMany({ where: { householdId: user.householdId }, orderBy: [{ type: "asc" }, { name: "asc" }] }),
-    prisma.paymentMethod.findMany({ where: { householdId: user.householdId }, orderBy: { name: "asc" } }),
+    prisma.category.findMany({ where: { householdId: user.householdId }, orderBy: [{ type: "asc" }, { name: "asc" }], select: { id: true, name: true, type: true } }),
+    prisma.paymentMethod.findMany({ where: { householdId: user.householdId }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
   if (!transaction) notFound();
 
