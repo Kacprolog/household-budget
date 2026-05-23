@@ -9,7 +9,7 @@ Pełna aplikacja Next.js do wspólnego zarządzania budżetem dla dwóch osób. 
 | `kacper` | `KacperBudzet2026!` | owner |
 | `narzeczona` | `PartnerkaBudzet2026!` | partner |
 
-Po pierwszym logowaniu wejdź w **Ustawienia → Konto** i zmień hasło.
+Po pierwszym logowaniu aplikacja pokaże ostrzeżenie o haśle tymczasowym. Wejdź w **Ustawienia → Konto** i zmień hasło; po poprawnej zmianie ostrzeżenie zniknie.
 
 ## Lokalny start
 
@@ -64,7 +64,7 @@ Jeśli chcesz repo publiczne, zamień `--private` na `--public`.
 
 ## Zmiana haseł
 
-Najprościej w aplikacji: **Ustawienia → Konto → Zmiana hasła**. Hasła są hashowane przez bcrypt z cost 12.
+Najprościej w aplikacji: **Ustawienia → Konto → Zmiana hasła**. Konta seed są oznaczone jako wymagające zmiany hasła, a po zapisaniu nowego hasła status zmienia się na „Zmienione”. Hasła są hashowane przez bcrypt z cost 12.
 
 Awaryjnie przez Prisma Studio:
 

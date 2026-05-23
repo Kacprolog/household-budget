@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BarChart3, Gauge, ListChecks, PiggyBank, Settings, Target } from "lucide-react";
+import { AlertTriangle, BarChart3, Gauge, ListChecks, PiggyBank, Settings, Target } from "lucide-react";
 import { auth } from "@/auth";
 import { QuickAddModal } from "@/components/app/quick-add-modal";
 import { SignOutButton } from "@/components/app/sign-out-button";
@@ -67,6 +67,17 @@ export async function AppFrame({ children, title }: { children: React.ReactNode;
           </div>
         </header>
         <main className="px-4 py-5 pb-28 md:px-6 md:pb-8">{children}</main>
+        {user.mustChangePassword ? (
+          <div className="fixed inset-x-4 bottom-20 z-40 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 shadow-lg dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100 md:left-auto md:right-6 md:bottom-6 md:max-w-md">
+            <div className="flex gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>
+                <div className="font-medium">Zmień hasło tymczasowe</div>
+                <div className="mt-1">To konto nadal wymaga rotacji hasła. Przejdź do <Link href="/settings/account" className="underline">Ustawienia → Konto</Link>.</div>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
       <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 md:hidden">
         {nav.map((item) => (

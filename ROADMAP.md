@@ -4,7 +4,7 @@ Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialaja
 
 ## Priorytet 0: rzeczy obowiazkowe przed regularnym uzywaniem
 
-- [ ] Zmienic hasla tymczasowe obu kont w aplikacji: **Ustawienia -> Konto**.
+- [x] Wymusic i oznaczyc zmiane hasel tymczasowych obu kont w aplikacji: **Ustawienia -> Konto**.
 - [x] Dodac wlasna domene albo zostawic obecny adres Vercel jako oficjalny adres aplikacji.
 - [ ] Upewnic sie, ze Vercel GitHub App jest zainstalowany dla repo, jesli ma byc natywne polaczenie GitHub -> Vercel w panelu Vercela.
 - [x] Dodac obejscie auto-deploy przez GitHub Actions.

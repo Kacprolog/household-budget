@@ -58,6 +58,7 @@ async function main() {
     create: {
       login: "kacper",
       passwordHash: ownerHash,
+      mustChangePassword: true,
       displayName: "Kacper",
       color: "#2563eb",
       role: "owner",
@@ -71,6 +72,7 @@ async function main() {
     create: {
       login: "narzeczona",
       passwordHash: partnerHash,
+      mustChangePassword: true,
       displayName: "Narzeczona",
       color: "#db2777",
       role: "partner",

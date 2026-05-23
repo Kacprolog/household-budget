@@ -472,7 +472,7 @@ export async function changePassword(formData: FormData) {
   if (!ok) return;
   await prisma.user.update({
     where: { id: user.id },
-    data: { passwordHash: await bcrypt.hash(nextPassword, 12) },
+    data: { passwordHash: await bcrypt.hash(nextPassword, 12), mustChangePassword: false },
   });
   redirect("/settings/account?password=changed");
 }

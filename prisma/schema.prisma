@@ -75,6 +75,7 @@ model User {
   id            String                 @id @default(cuid())
   login         String                 @unique
   passwordHash  String
+  mustChangePassword Boolean @default(false)
   displayName   String
   color         String                 @default("#0ea5e9")
   role          UserRole

@@ -104,9 +104,12 @@ export default async function MaintenancePage() {
           <CardHeader><CardTitle>Bezpieczeństwo kont</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm text-slate-500">
             <p>
-              Hasła tymczasowe powinny być zmienione ręcznie przez każdego użytkownika w **Ustawienia → Konto**.
+              Hasła tymczasowe powinny być zmienione ręcznie przez każdego użytkownika w Ustawienia → Konto.
               Aplikacja nie zna jawnych haseł po zmianie, zapisuje wyłącznie hash bcrypt.
             </p>
+            <Badge className={user.mustChangePassword ? "text-amber-700" : "text-green-700"}>
+              {user.mustChangePassword ? "Twoje konto wymaga zmiany hasła" : "Twoje konto ma zmienione hasło"}
+            </Badge>
             <Button asChild variant="outline" size="sm"><a href="/settings/account">Przejdź do konta</a></Button>
           </CardContent>
         </Card>

@@ -1,4 +1,5 @@
 import { AppFrame } from "@/components/app/app-frame";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,12 @@ export default async function AccountPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle>Zmiana hasła</CardTitle></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle>Zmiana hasła</CardTitle>
+              {user.mustChangePassword ? <Badge className="text-amber-700">Wymagana</Badge> : <Badge className="text-green-700">Zmienione</Badge>}
+            </div>
+          </CardHeader>
           <CardContent>
             <form action={changePassword} className="grid gap-4">
               <div className="space-y-2"><Label htmlFor="currentPassword">Obecne hasło</Label><Input id="currentPassword" name="currentPassword" type="password" required /></div>
