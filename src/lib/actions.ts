@@ -635,6 +635,27 @@ export async function syncBankConnections() {
   revalidatePath("/settings/banks");
 }
 
+export async function toggleRecurringTransaction(formData: FormData) {
+  const user = await requireUser();
+  const id = String(formData.get("id") ?? "");
+  const isActive = String(formData.get("isActive") ?? "") === "true";
+  const result = await prisma.recurringTransaction.updateMany({
+    where: { id, householdId: user.householdId },
+    data: { isActive },
+  });
+  if (result.count) {
+    await writeAudit(prisma, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "recurring_transaction.toggle",
+      entity: "recurringTransaction",
+      entityId: id,
+      summary: isActive ? "Wznowiono transakcję cykliczną" : "Wstrzymano transakcję cykliczną",
+    });
+  }
+  revalidatePath("/settings/recurring");
+}
+
 export async function confirmCsvImportBatch(formData: FormData) {
   const user = await requireUser();
   const id = String(formData.get("id") ?? "");

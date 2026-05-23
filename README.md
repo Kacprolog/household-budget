@@ -134,6 +134,7 @@ Dla budżetu dwóch osób największe ryzyko limitów to zwykle baza 500 MB przy
 - Bank sync: fundament danych i ekran **Ustawienia -> Banki** pod PSD2/Open Banking.
 - Tokeny bankowe: opcjonalny token dostawcy PSD2 jest szyfrowany AES-256-GCM przed zapisem; aplikacja nigdy nie prosi o login ani hasło do banku.
 - Reguly kategoryzacji: **Ustawienia -> Reguly** pozwala mapowac frazy z opisow transakcji na kategorie i metody platnosci, a import CSV korzysta z tych regul.
+- Cykliczne: **Ustawienia -> Cykliczne** pokazuje stale transakcje, kolejne terminy i pozwala je wstrzymac albo wznowic.
 - Edycja transakcji: lista transakcji ma akcje edycji kwoty, daty, opisu, kategorii i metody.
 - Kosz transakcji: filtr **Widok -> Usunięte** pozwala przywrócić transakcje po soft-delete.
 - Masowe operacje: w tabeli transakcji można zaznaczyć wiele wierszy i zbiorczo usunąć albo przywrócić.

@@ -64,8 +64,8 @@ Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego h
 - [x] Dodac masowe operacje na transakcjach.
 - [ ] Dodac tagi transakcji.
 - [ ] Dodac notatki do kategorii i celow.
-- [ ] Dodac powtarzalne transakcje z ekranem zarzadzania cyklicznoscia.
-- [ ] Dodac widok przyszlych transakcji cyklicznych.
+- [x] Dodac powtarzalne transakcje z ekranem zarzadzania cyklicznoscia.
+- [x] Dodac widok przyszlych transakcji cyklicznych.
 - [ ] Dodac obsluge nieregularnych cykli, np. co 2 tygodnie albo ostatni dzien miesiaca.
 - [ ] Dodac miesieczne zamkniecie budzetu.
 - [ ] Dodac porownanie plan vs wykonanie.

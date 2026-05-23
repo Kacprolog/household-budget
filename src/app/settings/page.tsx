@@ -9,6 +9,7 @@ const items = [
   ["Kategorie", "/settings/categories", "Lista kategorii przychodów i wydatków."],
   ["Reguły", "/settings/rules", "Automatyczna kategoryzacja opisów i merchantów."],
   ["Metody płatności", "/settings/payment-methods", "Gotówka, karta, przelew, BLIK i własne metody."],
+  ["Cykliczne", "/settings/recurring", "Stałe opłaty i przychody z kolejnymi terminami."],
   ["Banki", "/settings/banks", "PSD2/Open Banking i status synchronizacji."],
   ["Utrzymanie", "/settings/maintenance", "Backupy, URL produkcyjny, deploy i dane demo."],
   ["Aktywność", "/settings/activity", "Historia zmian w budżecie i ustawieniach."],

@@ -31,6 +31,10 @@ test.describe("private v1 smoke", () => {
 
     await page.getByRole("link", { name: "Ustawienia", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Ustawienia" })).toBeVisible();
+    await page.getByRole("link", { name: "Cykliczne" }).click();
+    await expect(page.getByRole("heading", { name: "Cykliczne" })).toBeVisible();
+    await expect(page.getByText("Transakcje cykliczne")).toBeVisible();
+    await page.getByRole("link", { name: "Ustawienia", exact: true }).click();
     await page.getByRole("link", { name: "Aktywność" }).click();
     await expect(page.getByRole("heading", { name: "Aktywność" })).toBeVisible();
     await expect(page.getByText("Ostatnie zmiany")).toBeVisible();
