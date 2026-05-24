@@ -11,6 +11,7 @@ import { writeAudit } from "@/lib/audit";
 import { encryptBankTokenPayload, tokenLastFour } from "@/lib/bank-tokens";
 import { markBankConnectionsSynced } from "@/lib/bank-sync";
 import { prisma } from "@/lib/prisma";
+import { dueRecurringRuns, recurringExternalId } from "@/lib/recurring";
 import { requireUser } from "@/lib/session";
 import { nextRunDate } from "@/lib/utils";
 
@@ -824,34 +825,56 @@ export async function changePassword(formData: FormData) {
 }
 
 export async function runRecurringTransactions() {
+  const now = new Date();
   const due = await prisma.recurringTransaction.findMany({
-    where: { isActive: true, nextRunAt: { lte: new Date() } },
+    where: { isActive: true, nextRunAt: { lte: now } },
   });
+
+  const summary = { schedules: due.length, created: 0, skipped: 0, capped: 0 };
 
   for (const item of due) {
     await prisma.$transaction(async (tx) => {
-      await tx.transaction.create({
-        data: {
-          householdId: item.householdId,
-          type: item.type,
-          amount: item.amount,
-          description: item.description,
-          date: item.nextRunAt,
-          categoryId: item.categoryId,
-          paymentMethodId: item.paymentMethodId,
-          addedById: item.addedById,
-          recurringTransactionId: item.id,
-          source: "recurring",
-          externalId: `recurring:${item.id}:${item.nextRunAt.toISOString().slice(0, 10)}`,
-        },
-      });
+      const dueRuns = dueRecurringRuns(item.nextRunAt, item.frequency, now);
+
+      for (const runAt of dueRuns.runs) {
+        const externalId = recurringExternalId(item.id, runAt);
+        const result = await tx.transaction.createMany({
+          data: [
+            {
+              householdId: item.householdId,
+              type: item.type,
+              amount: item.amount,
+              description: item.description,
+              date: runAt,
+              categoryId: item.categoryId,
+              paymentMethodId: item.paymentMethodId,
+              addedById: item.addedById,
+              recurringTransactionId: item.id,
+              source: "recurring",
+              externalId,
+            },
+          ],
+          skipDuplicates: true,
+        });
+
+        if (result.count === 0) {
+          summary.skipped += 1;
+        } else {
+          summary.created += result.count;
+        }
+      }
+
+      if (dueRuns.capped) summary.capped += 1;
+
       await tx.recurringTransaction.update({
         where: { id: item.id },
         data: {
-          lastRunAt: item.nextRunAt,
-          nextRunAt: nextRunDate(item.nextRunAt, item.frequency),
+          lastRunAt: dueRuns.runs.at(-1) ?? item.lastRunAt,
+          nextRunAt: dueRuns.nextRunAt,
         },
       });
     });
   }
+
+  return summary;
 }

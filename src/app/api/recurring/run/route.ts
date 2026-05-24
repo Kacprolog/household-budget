@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  await runRecurringTransactions();
-  return NextResponse.json({ ok: true });
+  const result = await runRecurringTransactions();
+  return NextResponse.json({ ok: true, ...result });
 }
 
 export async function POST(request: NextRequest) {
