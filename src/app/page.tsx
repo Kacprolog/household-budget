@@ -10,6 +10,11 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { money, percent, plDate, toNumber } from "@/lib/utils";
 
+type DailyNetRow = {
+  day: Date | string;
+  net: unknown;
+};
+
 export default async function DashboardPage() {
   const user = await requireUser();
   const now = new Date();
@@ -18,21 +23,37 @@ export default async function DashboardPage() {
   const previousFrom = startOfMonth(subMonths(now, 1));
   const previousTo = endOfMonth(subMonths(now, 1));
 
-  const [current, previous, budgets, recent, goals] = await Promise.all([
-    prisma.transaction.findMany({
+  const [currentTotals, currentByCategoryRows, previousByCategoryRows, dailyNetRows, categories, budgets, recent, goals] = await Promise.all([
+    prisma.transaction.groupBy({
+      by: ["type"],
       where: { householdId: user.householdId, deletedAt: null, date: { gte: currentFrom, lte: currentTo } },
-      select: {
-        type: true,
-        amount: true,
-        date: true,
-        categoryId: true,
-        category: { select: { name: true, color: true } },
-      },
-      orderBy: { date: "asc" },
+      _sum: { amount: true },
     }),
-    prisma.transaction.findMany({
-      where: { householdId: user.householdId, deletedAt: null, date: { gte: previousFrom, lte: previousTo } },
-      select: { type: true, amount: true, category: { select: { name: true } } },
+    prisma.transaction.groupBy({
+      by: ["categoryId"],
+      where: { householdId: user.householdId, deletedAt: null, type: { not: "income" }, date: { gte: currentFrom, lte: currentTo } },
+      _sum: { amount: true },
+    }),
+    prisma.transaction.groupBy({
+      by: ["categoryId"],
+      where: { householdId: user.householdId, deletedAt: null, type: { not: "income" }, date: { gte: previousFrom, lte: previousTo } },
+      _sum: { amount: true },
+    }),
+    prisma.$queryRaw<DailyNetRow[]>`
+      SELECT
+        date_trunc('day', "date")::date AS "day",
+        COALESCE(SUM(CASE WHEN "type" = 'income'::"TransactionType" THEN "amount" ELSE -"amount" END), 0) AS "net"
+      FROM "Transaction"
+      WHERE "householdId" = ${user.householdId}
+        AND "deletedAt" IS NULL
+        AND "date" >= ${currentFrom}
+        AND "date" <= ${now}
+      GROUP BY 1
+      ORDER BY 1 ASC
+    `,
+    prisma.category.findMany({
+      where: { householdId: user.householdId },
+      select: { id: true, name: true, color: true },
     }),
     prisma.budget.findMany({
       where: { householdId: user.householdId, month: currentFrom },
@@ -56,26 +77,30 @@ export default async function DashboardPage() {
     prisma.goal.findMany({ where: { householdId: user.householdId }, orderBy: { deadline: "asc" }, take: 4 }),
   ]);
 
-  const income = current.filter((item) => item.type === "income").reduce((sum, item) => sum + toNumber(item.amount), 0);
-  const expenses = current.filter((item) => item.type !== "income").reduce((sum, item) => sum + toNumber(item.amount), 0);
+  const income = currentTotals.filter((item) => item.type === "income").reduce((sum, item) => sum + toNumber(item._sum.amount), 0);
+  const expenses = currentTotals.filter((item) => item.type !== "income").reduce((sum, item) => sum + toNumber(item._sum.amount), 0);
   const saldo = income - expenses;
   const totalBudget = budgets.reduce((sum, budget) => sum + toNumber(budget.limitAmount), 0);
   const budgetUse = totalBudget ? expenses / totalBudget : 0;
+  const categoryById = new Map(categories.map((category) => [category.id, category]));
 
-  const byCategory = new Map<string, { name: string; value: number; color: string }>();
-  for (const item of current.filter((transaction) => transaction.type !== "income")) {
-    const existing = byCategory.get(item.categoryId) ?? { name: item.category.name, value: 0, color: item.category.color };
-    existing.value += toNumber(item.amount);
-    byCategory.set(item.categoryId, existing);
-  }
+  const byCategory = new Map(
+    currentByCategoryRows.map((item) => {
+      const category = categoryById.get(item.categoryId);
+      return [
+        item.categoryId,
+        {
+          name: category?.name ?? "Bez kategorii",
+          value: toNumber(item._sum.amount),
+          color: category?.color ?? "#64748b",
+        },
+      ] as const;
+    }),
+  );
   const topCategories = [...byCategory.values()].sort((a, b) => b.value - a.value).slice(0, 5);
 
   const days = eachDayOfInterval({ start: currentFrom, end: now });
-  const netByDay = new Map<string, number>();
-  for (const item of current) {
-    const key = format(item.date, "yyyy-MM-dd");
-    netByDay.set(key, (netByDay.get(key) ?? 0) + (item.type === "income" ? toNumber(item.amount) : -toNumber(item.amount)));
-  }
+  const netByDay = new Map(dailyNetRows.map((item) => [format(new Date(item.day), "yyyy-MM-dd"), toNumber(item.net)]));
   const dailyNet = days.map((day) => netByDay.get(format(day, "yyyy-MM-dd")) ?? 0);
   const balanceLine = dailyNet.reduce<{ data: { day: string; saldo: number; trend: number }[]; running: number }>(
     (acc, value, index) => {
@@ -92,8 +117,9 @@ export default async function DashboardPage() {
   ).data;
 
   const previousByCategory = new Map<string, number>();
-  for (const item of previous.filter((transaction) => transaction.type !== "income")) {
-    previousByCategory.set(item.category.name, (previousByCategory.get(item.category.name) ?? 0) + toNumber(item.amount));
+  for (const item of previousByCategoryRows) {
+    const name = categoryById.get(item.categoryId)?.name ?? "Bez kategorii";
+    previousByCategory.set(name, toNumber(item._sum.amount));
   }
   const compare = [...new Set([...topCategories.map((item) => item.name), ...previousByCategory.keys()])]
     .slice(0, 8)
