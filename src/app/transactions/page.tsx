@@ -122,6 +122,13 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
               </tr>
             </thead>
             <tbody>
+              {!transactions.length ? (
+                <tr>
+                  <td colSpan={10} className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                    Brak transakcji dla wybranych filtrów.
+                  </td>
+                </tr>
+              ) : null}
               {transactions.map((item) => (
                 <tr key={item.id} className="border-t border-slate-100 dark:border-slate-800">
                   <td className="p-3">

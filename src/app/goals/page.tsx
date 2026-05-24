@@ -35,6 +35,13 @@ export default async function GoalsPage() {
       </Card>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        {!goals.length ? (
+          <Card className="lg:col-span-2">
+            <CardContent className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+              Brak celów. Dodaj pierwszy cel oszczędnościowy powyżej.
+            </CardContent>
+          </Card>
+        ) : null}
         {goals.map((goal) => {
           const current = toNumber(goal.currentAmount);
           const target = toNumber(goal.targetAmount);

@@ -227,6 +227,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
         <Card>
           <CardHeader><CardTitle>Top 10 transakcji</CardTitle></CardHeader>
           <CardContent className="space-y-2">
+            {!topTransactions.length ? <EmptyState>Brak transakcji w wybranym zakresie.</EmptyState> : null}
             {topTransactions.map((item) => (
               <div key={item.id} className="flex justify-between rounded-md border border-slate-100 p-3 text-sm dark:border-slate-800">
                 <span>{format(item.date, "dd.MM.yyyy")} · {item.category.name} · {item.description || "-"}</span>
@@ -238,6 +239,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
         <Card>
           <CardHeader><CardTitle>Trend kategorii</CardTitle></CardHeader>
           <CardContent className="space-y-3">
+            {!trends.length ? <EmptyState>Brak trendów kategorii dla wybranego zakresu.</EmptyState> : null}
             {trends.map((item) => {
               const diff = item.current - item.previous;
               return (
@@ -253,6 +255,10 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
       <p className="mt-4 text-sm text-slate-500">Burn rate: {money(totalExpense / dayCount)} dziennie. Przychody w zakresie: {money(totalIncome)}. Najtańszy aktywny dzień: {minDay.label}.</p>
     </AppFrame>
   );
+}
+
+function EmptyState({ children }: { children: React.ReactNode }) {
+  return <div className="rounded-lg border border-dashed border-slate-200 bg-white/45 p-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-950/30 dark:text-slate-400">{children}</div>;
 }
 
 function Stat({ title, value }: { title: string; value: string }) {

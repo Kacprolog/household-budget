@@ -182,6 +182,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader><CardTitle>Ostatnie transakcje</CardTitle></CardHeader>
           <CardContent className="space-y-3">
+            {!recent.length ? <EmptyState>Brak transakcji w historii.</EmptyState> : null}
             {recent.map((item) => (
               <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border border-white/70 bg-white/60 p-3 shadow-sm transition-colors hover:bg-white/90 dark:border-slate-800/80 dark:bg-slate-950/40 dark:hover:bg-slate-900/70">
                 <div className="min-w-0">
@@ -196,6 +197,7 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader><CardTitle>Status celów</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            {!goals.length ? <EmptyState>Brak aktywnych celów oszczędnościowych.</EmptyState> : null}
             {goals.map((goal) => {
               const currentAmount = toNumber(goal.currentAmount);
               const target = toNumber(goal.targetAmount);
@@ -214,6 +216,10 @@ export default async function DashboardPage() {
       </div>
     </AppFrame>
   );
+}
+
+function EmptyState({ children }: { children: React.ReactNode }) {
+  return <div className="rounded-lg border border-dashed border-slate-200 bg-white/45 p-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-950/30 dark:text-slate-400">{children}</div>;
 }
 
 function Metric({ title, value, tone, icon: Icon, hint }: { title: string; value: string; tone: "green" | "red" | "amber" | "neutral"; icon: LucideIcon; hint: string }) {

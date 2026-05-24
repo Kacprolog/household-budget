@@ -28,6 +28,8 @@ const tooltipStyle = {
 };
 
 export function HorizontalBars({ data }: { data: { name: string; value: number; color?: string }[] }) {
+  if (!data.length) return <EmptyChart />;
+
   return (
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={data} layout="vertical" margin={{ left: 20, right: 20 }}>
@@ -46,6 +48,8 @@ export function HorizontalBars({ data }: { data: { name: string; value: number; 
 }
 
 export function BalanceLine({ data }: { data: { day: string; saldo: number; trend?: number }[] }) {
+  if (!data.length) return <EmptyChart />;
+
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={data}>
@@ -61,6 +65,8 @@ export function BalanceLine({ data }: { data: { day: string; saldo: number; tren
 }
 
 export function CategoryDonut({ data }: { data: { name: string; value: number; color?: string }[] }) {
+  if (!data.length) return <EmptyChart />;
+
   return (
     <ResponsiveContainer width="100%" height={260}>
       <PieChart>
@@ -77,6 +83,8 @@ export function CategoryDonut({ data }: { data: { name: string; value: number; c
 }
 
 export function CompareBars({ data }: { data: { name: string; current: number; previous: number }[] }) {
+  if (!data.length) return <EmptyChart height="h-[300px]" />;
+
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data}>
@@ -93,6 +101,8 @@ export function CompareBars({ data }: { data: { name: string; current: number; p
 }
 
 export function IncomeExpenseLine({ data }: { data: { label: string; przychody: number; wydatki: number }[] }) {
+  if (!data.length) return <EmptyChart height="h-[320px]" />;
+
   return (
     <ResponsiveContainer width="100%" height={320}>
       <AreaChart data={data}>
@@ -109,6 +119,8 @@ export function IncomeExpenseLine({ data }: { data: { label: string; przychody: 
 }
 
 export function SavingsLine({ data }: { data: { label: string; oszczednosci: number }[] }) {
+  if (!data.length) return <EmptyChart />;
+
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={data}>
@@ -119,5 +131,13 @@ export function SavingsLine({ data }: { data: { label: string; oszczednosci: num
         <Line type="monotone" dataKey="oszczednosci" stroke="#16a34a" strokeWidth={3} dot={false} activeDot={{ r: 5 }} />
       </LineChart>
     </ResponsiveContainer>
+  );
+}
+
+function EmptyChart({ height = "h-[260px]" }: { height?: string }) {
+  return (
+    <div className={`grid ${height} place-items-center rounded-lg border border-dashed border-slate-200 bg-white/40 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-950/30 dark:text-slate-400`}>
+      Brak danych do wykresu
+    </div>
   );
 }

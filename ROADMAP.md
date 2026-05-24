@@ -91,7 +91,7 @@ Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego h
 
 - [x] Dodac PWA, zeby aplikacje mozna bylo zainstalowac na telefonie.
 - [x] Dodac manifest, ikony i service worker.
-- [ ] Dodac lepszy pusty stan dla nowych kont bez danych.
+- [x] Dodac lepszy pusty stan dla nowych kont bez danych.
 - [x] Dodac skeleton loading dla wykresow i ciezkich widokow.
 - [ ] Dodac toast po dodaniu/edycji/usunieciu danych.
 - [x] Dodac potwierdzenia dla usuwania transakcji/kategorii/regul/danych demo.
