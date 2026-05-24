@@ -22,6 +22,34 @@ function emptyToUndefined(value: FormDataEntryValue | null) {
   return text.length ? text : undefined;
 }
 
+async function assertCategoryBelongsToHousehold(householdId: string, categoryId: string, type?: "income" | "expense" | "saving") {
+  const category = await prisma.category.findFirst({
+    where: { id: categoryId, householdId, ...(type ? { type } : {}) },
+    select: { id: true },
+  });
+  if (!category) throw new Error("Nieprawidlowa kategoria dla tego budzetu.");
+}
+
+async function assertPaymentMethodBelongsToHousehold(householdId: string, paymentMethodId: string) {
+  const method = await prisma.paymentMethod.findFirst({
+    where: { id: paymentMethodId, householdId },
+    select: { id: true },
+  });
+  if (!method) throw new Error("Nieprawidlowa metoda platnosci dla tego budzetu.");
+}
+
+async function assertTransactionRefsBelongToHousehold(
+  householdId: string,
+  categoryId: string,
+  paymentMethodId: string,
+  type: "income" | "expense",
+) {
+  await Promise.all([
+    assertCategoryBelongsToHousehold(householdId, categoryId, type),
+    assertPaymentMethodBelongsToHousehold(householdId, paymentMethodId),
+  ]);
+}
+
 export async function loginAction(formData: FormData) {
   const login = String(formData.get("login") ?? "");
   const password = String(formData.get("password") ?? "");
@@ -55,6 +83,8 @@ export async function createTransaction(formData: FormData) {
     });
 
   const date = new Date(`${parsed.date}T12:00:00`);
+  await assertTransactionRefsBelongToHousehold(user.householdId, parsed.categoryId, parsed.paymentMethodId, parsed.type);
+
   const transaction = await prisma.transaction.create({
     data: {
       householdId: user.householdId,
@@ -209,6 +239,8 @@ export async function updateTransaction(formData: FormData) {
       date: formData.get("date"),
     });
 
+  await assertTransactionRefsBelongToHousehold(user.householdId, parsed.categoryId, parsed.paymentMethodId, parsed.type);
+
   const result = await prisma.transaction.updateMany({
     where: { id: parsed.id, householdId: user.householdId, deletedAt: null },
     data: {
@@ -251,6 +283,7 @@ export async function updateBudget(formData: FormData) {
       month: formData.get("month"),
     });
   const month = startOfMonth(new Date(`${parsed.month}-01T12:00:00`));
+  await assertCategoryBelongsToHousehold(user.householdId, parsed.categoryId, "expense");
 
   await prisma.budget.upsert({
     where: {
@@ -333,6 +366,8 @@ export async function contributeGoal(formData: FormData) {
       categoryId: formData.get("categoryId"),
       paymentMethodId: formData.get("paymentMethodId"),
     });
+
+  await assertTransactionRefsBelongToHousehold(user.householdId, parsed.categoryId, parsed.paymentMethodId, "expense");
 
   await prisma.$transaction(async (tx) => {
     const goal = await tx.goal.findFirstOrThrow({
@@ -480,6 +515,11 @@ export async function createCategorizationRule(formData: FormData) {
       paymentMethodId: formData.get("paymentMethodId") || undefined,
       priority: formData.get("priority") || 100,
     });
+
+  await Promise.all([
+    assertCategoryBelongsToHousehold(user.householdId, parsed.categoryId, parsed.type === "all" ? undefined : parsed.type),
+    parsed.paymentMethodId ? assertPaymentMethodBelongsToHousehold(user.householdId, parsed.paymentMethodId) : Promise.resolve(),
+  ]);
 
   const rule = await prisma.categorizationRule.upsert({
     where: {
