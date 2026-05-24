@@ -8,7 +8,7 @@ Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego h
 
 - [x] Wymusic i oznaczyc zmiane hasel tymczasowych obu kont w aplikacji: **Ustawienia -> Konto**.
 - [x] Dodac wlasna domene albo zostawic obecny adres Vercel jako oficjalny adres aplikacji.
-- [ ] Upewnic sie, ze Vercel GitHub App jest zainstalowany dla repo, jesli ma byc natywne polaczenie GitHub -> Vercel w panelu Vercela.
+- [x] Upewnic sie, ze Vercel GitHub App jest zainstalowany dla repo, jesli ma byc natywne polaczenie GitHub -> Vercel w panelu Vercela.
 - [x] Dodac obejscie auto-deploy przez GitHub Actions.
 - [x] Dodac cron/scheduler dla `/api/recurring/run`, zeby transakcje cykliczne wykonywaly sie automatycznie.
 - [x] Dodac automatyczny backup bazy, np. tygodniowy `pg_dump`.
@@ -31,6 +31,7 @@ Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego h
 - [ ] Dodac flow: `Polacz bank` -> redirect do dostawcy -> powrot do aplikacji -> zapis zgody.
 - [x] Dodac reczne odswiezanie transakcji z banku.
 - [x] Dodac automatyczne odswiezanie transakcji przez cron, np. raz dziennie.
+- [x] Dodac uczciwy status synchronizacji: CSV oznaczane jako zsynchronizowane, PSD2 bez dostawcy jako wymagajace integracji.
 - [x] Dodac deduplikacje po `externalTransactionId`, kwocie, dacie i opisie.
 - [x] Dodac mapowanie transakcji bankowych na kategorie.
 - [x] Dodac reguly automatycznej kategoryzacji, np. `Biedronka -> Jedzenie`.
@@ -91,7 +92,7 @@ Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego h
 - [x] Dodac PWA, zeby aplikacje mozna bylo zainstalowac na telefonie.
 - [x] Dodac manifest, ikony i service worker.
 - [ ] Dodac lepszy pusty stan dla nowych kont bez danych.
-- [ ] Dodac skeleton loading dla wykresow.
+- [x] Dodac skeleton loading dla wykresow i ciezkich widokow.
 - [ ] Dodac toast po dodaniu/edycji/usunieciu danych.
 - [x] Dodac potwierdzenia dla usuwania transakcji/kategorii/regul/danych demo.
 - [ ] Dodac wyszukiwarke globalna.
