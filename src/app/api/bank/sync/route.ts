@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const checked = await markBankConnectionsSynced({ status: { in: ["connected", "draft"] } });
+  const result = await markBankConnectionsSynced({ status: { in: ["connected", "draft", "error"] } });
 
-  return NextResponse.json({ ok: true, checked });
+  return NextResponse.json({ ok: true, ...result });
 }

@@ -622,16 +622,17 @@ export async function disableBankConnection(formData: FormData) {
 
 export async function syncBankConnections() {
   const user = await requireUser();
-  await markBankConnectionsSynced({
+  const result = await markBankConnectionsSynced({
     householdId: user.householdId,
-    status: { in: ["connected", "draft"] },
+    status: { in: ["connected", "draft", "error"] },
   });
   await writeAudit(prisma, {
     householdId: user.householdId,
     userId: user.id,
     action: "bank_connection.sync",
     entity: "bankConnection",
-    summary: "Uruchomiono ręczną synchronizację banków",
+    summary: `Uruchomiono synchronizację banków: ${result.synced}/${result.checked}`,
+    metadata: result,
   });
   revalidatePath("/settings/banks");
 }
