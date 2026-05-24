@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { bulkUpdateTransactions, deleteTransaction, restoreTransaction } from "@/lib/actions";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
+import { transactionWhereFromParams } from "@/lib/transaction-filters";
 import { money, plDate, toNumber } from "@/lib/utils";
 
 const sortable = new Set(["date", "amount", "type", "description"]);
@@ -22,23 +23,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   const dir = params.dir === "asc" ? "asc" : "desc";
   const deletedFilter = params.deleted === "only" ? "only" : params.deleted === "all" ? "all" : "active";
 
-  const where = {
-    householdId: user.householdId,
-    ...(deletedFilter === "active" ? { deletedAt: null } : deletedFilter === "only" ? { deletedAt: { not: null } } : {}),
-    ...(params.type ? { type: params.type as "income" | "expense" } : {}),
-    ...(params.categoryId ? { categoryId: params.categoryId } : {}),
-    ...(params.addedById ? { addedById: params.addedById } : {}),
-    ...(params.paymentMethodId ? { paymentMethodId: params.paymentMethodId } : {}),
-    ...(params.from || params.to
-      ? {
-          date: {
-            ...(params.from ? { gte: new Date(`${params.from}T00:00:00`) } : {}),
-            ...(params.to ? { lte: new Date(`${params.to}T23:59:59`) } : {}),
-          },
-        }
-      : {}),
-    ...(params.q ? { description: { contains: params.q, mode: "insensitive" as const } } : {}),
-  };
+  const where = transactionWhereFromParams(params, user.householdId);
 
   const [transactions, total, categories, users, methods] = await Promise.all([
     prisma.transaction.findMany({

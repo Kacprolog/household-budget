@@ -1,7 +1,9 @@
 import React from "react";
+import { NextRequest } from "next/server";
 import { Document, Page, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
+import { transactionWhereFromParams } from "@/lib/transaction-filters";
 import { money, plDate, toNumber } from "@/lib/utils";
 
 export const runtime = "nodejs";
@@ -15,16 +17,31 @@ const styles = StyleSheet.create({
   strong: { fontSize: 13, marginBottom: 6 },
 });
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const user = await requireUser();
-  const transactions = await prisma.transaction.findMany({
-    where: { householdId: user.householdId, deletedAt: null },
-    include: { category: true, addedBy: true },
-    orderBy: { date: "desc" },
-    take: 80,
-  });
-  const income = transactions.filter((item) => item.type === "income").reduce((sum, item) => sum + toNumber(item.amount), 0);
-  const expenses = transactions.filter((item) => item.type !== "income").reduce((sum, item) => sum + toNumber(item.amount), 0);
+  const where = transactionWhereFromParams(request.nextUrl.searchParams, user.householdId);
+  const [transactions, totals] = await Promise.all([
+    prisma.transaction.findMany({
+      where,
+      select: {
+        id: true,
+        type: true,
+        amount: true,
+        date: true,
+        category: { select: { name: true } },
+        addedBy: { select: { displayName: true } },
+      },
+      orderBy: { date: "desc" },
+      take: 80,
+    }),
+    prisma.transaction.groupBy({
+      by: ["type"],
+      where,
+      _sum: { amount: true },
+    }),
+  ]);
+  const income = totals.filter((item) => item.type === "income").reduce((sum, item) => sum + toNumber(item._sum.amount), 0);
+  const expenses = totals.filter((item) => item.type !== "income").reduce((sum, item) => sum + toNumber(item._sum.amount), 0);
 
   const doc = React.createElement(
     Document,
