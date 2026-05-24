@@ -107,7 +107,7 @@ Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego h
 - [ ] Dodac testy integracyjne dla server actions.
 - [x] Dodac bezpieczny smoke e2e Playwright: login, core views, quick-add, eksport CSV/PDF bez modyfikowania danych.
 - [ ] Dodac osobny test e2e na dodanie transakcji w bazie testowej/staging.
-- [ ] Dodac walidacje uprawnien we wszystkich akcjach modyfikujacych dane.
+- [x] Dodac walidacje uprawnien we wszystkich akcjach modyfikujacych dane.
 - [x] Dodac audyt zdarzen: kto co dodal/zmienil/usunal.
 - [ ] Dodac rate limiting dla innych wrazliwych endpointow, nie tylko loginu.
 - [x] Dodac szyfrowanie wrazliwych danych integracji bankowej.
