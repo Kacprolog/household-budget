@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowDownUp, Download, FileText, Pencil, RotateCcw, Search, Trash2, Upload } from "lucide-react";
+import { ArrowDownUp, Download, FileText, FolderInput, Pencil, RotateCcw, Search, Trash2, Upload } from "lucide-react";
 import { AppFrame } from "@/components/app/app-frame";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,7 +45,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
       take,
     }),
     prisma.transaction.count({ where }),
-    prisma.category.findMany({ where: { householdId: user.householdId }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    prisma.category.findMany({ where: { householdId: user.householdId }, orderBy: { name: "asc" }, select: { id: true, name: true, type: true } }),
     prisma.user.findMany({ where: { householdId: user.householdId }, orderBy: { displayName: "asc" }, select: { id: true, displayName: true } }),
     prisma.paymentMethod.findMany({ where: { householdId: user.householdId }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
@@ -90,7 +90,16 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
         <form action={bulkUpdateTransactions}>
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 p-3 dark:border-slate-800">
             <span className="text-sm text-slate-500">Zaznacz wiersze i wykonaj akcję zbiorczą.</span>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <select name="bulkCategoryId" className="h-8 min-w-48 rounded-md border border-slate-200 bg-white px-2 text-sm dark:border-slate-800 dark:bg-slate-950" defaultValue="">
+                <option value="">Wybierz kategorię</option>
+                {categories.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} · {categoryTypeLabel(item.type)}
+                  </option>
+                ))}
+              </select>
+              <Button name="intent" value="move-category" variant="outline" size="sm"><FolderInput className="h-4 w-4" /> Przenieś</Button>
               <ConfirmSubmitButton name="intent" value="delete" variant="outline" size="sm" message="Usunąć zaznaczone transakcje? Będzie można je przywrócić z widoku Usunięte.">
                 <Trash2 className="h-4 w-4" /> Usuń zaznaczone
               </ConfirmSubmitButton>
@@ -181,6 +190,12 @@ function sourceLabel(source: string) {
   if (source === "bank") return "Bank";
   if (source === "recurring") return "Cykliczna";
   return "Ręczna";
+}
+
+function categoryTypeLabel(type: string) {
+  if (type === "income") return "przychód";
+  if (type === "saving") return "oszczędność";
+  return "wydatek";
 }
 
 function Select({ label, name, defaultValue, options }: { label: string; name: string; defaultValue?: string; options: [string, string][] }) {

@@ -211,6 +211,32 @@ export async function bulkUpdateTransactions(formData: FormData) {
       metadata: { count: result.count },
     });
   }
+  if (intent === "move-category") {
+    const categoryId = String(formData.get("bulkCategoryId") ?? "");
+    const category = await prisma.category.findFirst({
+      where: { id: categoryId, householdId: user.householdId },
+      select: { id: true, name: true, type: true },
+    });
+    if (!category) return;
+
+    const result = await prisma.transaction.updateMany({
+      where: {
+        id: { in: ids },
+        householdId: user.householdId,
+        deletedAt: null,
+        type: category.type,
+      },
+      data: { categoryId: category.id },
+    });
+    await writeAudit(prisma, {
+      householdId: user.householdId,
+      userId: user.id,
+      action: "transaction.bulk_move_category",
+      entity: "transaction",
+      summary: `Przeniesiono transakcje do kategorii ${category.name}: ${result.count}`,
+      metadata: { count: result.count, categoryId: category.id, categoryType: category.type },
+    });
+  }
 
   revalidatePath("/");
   revalidatePath("/transactions");

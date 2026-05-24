@@ -63,7 +63,7 @@ Status: odlozone na pozniej. W wersji prywatnej v1 realne dane wprowadzamy reczn
 
 - [x] Dodac pelna edycje transakcji w UI, nie tylko dodawanie i usuwanie.
 - [x] Dodac przywracanie soft-delete transakcji.
-- [ ] Dodac przenoszenie transakcji miedzy kategoriami.
+- [x] Dodac przenoszenie transakcji miedzy kategoriami.
 - [x] Dodac masowe operacje na transakcjach.
 - [ ] Dodac tagi transakcji.
 - [ ] Dodac notatki do kategorii i celow.
