@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { differenceInCalendarDays, eachDayOfInterval, format, getDay, isSameMonth } from "date-fns";
+import { differenceInCalendarDays, eachDayOfInterval, endOfMonth, format, startOfMonth } from "date-fns";
 import { AppFrame } from "@/components/app/app-frame";
 import { CategoryDonut, IncomeExpenseLine, SavingsLine } from "@/components/app/charts";
 import { Badge } from "@/components/ui/badge";
@@ -10,40 +10,113 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { money, rangeFromPreset, toNumber } from "@/lib/utils";
 
+type DailyTotalRow = {
+  day: Date | string;
+  income: unknown;
+  expense: unknown;
+};
+
+type TrendRow = {
+  categoryId: string;
+  current: unknown;
+  previous: unknown;
+};
+
+type HeatmapRow = {
+  day: number | bigint | string;
+  categoryName: string;
+  value: unknown;
+};
+
 export default async function AnalyticsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
   const user = await requireUser();
   const range = rangeFromPreset(params.range, params.from, params.to);
   const excludeCommon = params.excludeCommon === "on";
   const commonNames = ["Mieszkanie (czynsz/kredyt)", "Rachunki", "Oszczędności"];
+  const now = new Date();
+  const currentMonthFrom = startOfMonth(now);
+  const currentMonthTo = endOfMonth(now);
 
-  const transactions = await prisma.transaction.findMany({
-    where: { householdId: user.householdId, deletedAt: null, date: { gte: range.from, lte: range.to } },
-    select: {
-      id: true,
-      type: true,
-      amount: true,
-      date: true,
-      description: true,
-      categoryId: true,
-      addedById: true,
-      category: { select: { name: true, color: true } },
-      addedBy: { select: { displayName: true, color: true } },
-    },
-    orderBy: { date: "asc" },
-  });
+  const [categories, users] = await Promise.all([
+    prisma.category.findMany({ where: { householdId: user.householdId }, select: { id: true, name: true, color: true } }),
+    prisma.user.findMany({ where: { householdId: user.householdId }, select: { id: true, displayName: true, color: true } }),
+  ]);
 
-  const expenses = transactions.filter((item) => item.type !== "income");
-  const incomes = transactions.filter((item) => item.type === "income");
+  const categoryById = new Map(categories.map((category) => [category.id, category]));
+  const userById = new Map(users.map((item) => [item.id, item]));
+  const commonCategoryIds = categories.filter((category) => commonNames.includes(category.name)).map((category) => category.id);
+
+  const [dailyTotals, authorRows, topTransactions, trendRows, heatmapRows] = await Promise.all([
+    prisma.$queryRaw<DailyTotalRow[]>`
+      SELECT
+        date_trunc('day', "date")::date AS "day",
+        COALESCE(SUM(CASE WHEN "type" = 'income'::"TransactionType" THEN "amount" ELSE 0 END), 0) AS "income",
+        COALESCE(SUM(CASE WHEN "type" <> 'income'::"TransactionType" THEN "amount" ELSE 0 END), 0) AS "expense"
+      FROM "Transaction"
+      WHERE "householdId" = ${user.householdId}
+        AND "deletedAt" IS NULL
+        AND "date" >= ${range.from}
+        AND "date" <= ${range.to}
+      GROUP BY 1
+      ORDER BY 1 ASC
+    `,
+    prisma.transaction.groupBy({
+      by: ["addedById"],
+      where: {
+        householdId: user.householdId,
+        deletedAt: null,
+        type: { not: "income" },
+        date: { gte: range.from, lte: range.to },
+        ...(excludeCommon && commonCategoryIds.length ? { categoryId: { notIn: commonCategoryIds } } : {}),
+      },
+      _sum: { amount: true },
+    }),
+    prisma.transaction.findMany({
+      where: { householdId: user.householdId, deletedAt: null, type: { not: "income" }, date: { gte: range.from, lte: range.to } },
+      select: { id: true, amount: true, date: true, description: true, category: { select: { name: true } } },
+      orderBy: { amount: "desc" },
+      take: 10,
+    }),
+    prisma.$queryRaw<TrendRow[]>`
+      SELECT
+        "categoryId",
+        COALESCE(SUM(CASE WHEN "date" >= ${currentMonthFrom} AND "date" <= ${currentMonthTo} THEN "amount" ELSE 0 END), 0) AS "current",
+        COALESCE(SUM(CASE WHEN "date" < ${currentMonthFrom} OR "date" > ${currentMonthTo} THEN "amount" ELSE 0 END), 0) AS "previous"
+      FROM "Transaction"
+      WHERE "householdId" = ${user.householdId}
+        AND "deletedAt" IS NULL
+        AND "type" <> 'income'::"TransactionType"
+        AND "date" >= ${range.from}
+        AND "date" <= ${range.to}
+      GROUP BY "categoryId"
+      ORDER BY "current" DESC
+      LIMIT 8
+    `,
+    prisma.$queryRaw<HeatmapRow[]>`
+      SELECT
+        EXTRACT(DOW FROM t."date")::int AS "day",
+        c."name" AS "categoryName",
+        COALESCE(SUM(t."amount"), 0) AS "value"
+      FROM "Transaction" t
+      JOIN "Category" c ON c."id" = t."categoryId"
+      WHERE t."householdId" = ${user.householdId}
+        AND t."deletedAt" IS NULL
+        AND t."type" <> 'income'::"TransactionType"
+        AND t."date" >= ${range.from}
+        AND t."date" <= ${range.to}
+        AND c."name" IN ('Mieszkanie (czynsz/kredyt)', 'Rachunki', 'Oszczędności', 'Jedzenie', 'Transport', 'Rozrywka')
+      GROUP BY 1, 2
+    `,
+  ]);
+
   const days = eachDayOfInterval({ start: range.from, end: range.to });
-  const totalsByDay = new Map<string, { przychody: number; wydatki: number }>();
-  for (const item of transactions) {
-    const key = format(item.date, "yyyy-MM-dd");
-    const bucket = totalsByDay.get(key) ?? { przychody: 0, wydatki: 0 };
-    if (item.type === "income") bucket.przychody += toNumber(item.amount);
-    else bucket.wydatki += toNumber(item.amount);
-    totalsByDay.set(key, bucket);
-  }
+  const totalsByDay = new Map(
+    dailyTotals.map((item) => [
+      format(new Date(item.day), "yyyy-MM-dd"),
+      { przychody: toNumber(item.income), wydatki: toNumber(item.expense) },
+    ]),
+  );
   const byDay = days.map((day) => {
     const key = format(day, "yyyy-MM-dd");
     const bucket = totalsByDay.get(key) ?? { przychody: 0, wydatki: 0 };
@@ -64,38 +137,40 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
   ).data;
 
   const dailyExpenseValues = byDay.map((item) => item.wydatki).filter((value) => value > 0).sort((a, b) => a - b);
-  const totalExpense = expenses.reduce((sum, item) => sum + toNumber(item.amount), 0);
-  const totalIncome = incomes.reduce((sum, item) => sum + toNumber(item.amount), 0);
+  const totalExpense = byDay.reduce((sum, item) => sum + item.wydatki, 0);
+  const totalIncome = byDay.reduce((sum, item) => sum + item.przychody, 0);
   const median = dailyExpenseValues.length ? dailyExpenseValues[Math.floor(dailyExpenseValues.length / 2)] : 0;
   const maxDay = byDay.reduce((best, item) => (item.wydatki > best.wydatki ? item : best), byDay[0] ?? { label: "-", wydatki: 0 });
   const minDay = byDay.filter((item) => item.wydatki > 0).reduce((best, item) => (item.wydatki < best.wydatki ? item : best), { label: "-", wydatki: 0 });
   const dayCount = Math.max(1, differenceInCalendarDays(range.to, range.from) + 1);
 
-  const byAuthor = new Map<string, { name: string; value: number; color: string }>();
-  for (const item of expenses) {
-    if (excludeCommon && commonNames.includes(item.category.name)) continue;
-    const existing = byAuthor.get(item.addedById) ?? { name: item.addedBy.displayName, value: 0, color: item.addedBy.color };
-    existing.value += toNumber(item.amount);
-    byAuthor.set(item.addedById, existing);
-  }
+  const byAuthor = new Map(
+    authorRows.map((item) => {
+      const author = userById.get(item.addedById);
+      return [
+        item.addedById,
+        { name: author?.displayName ?? "Nieznany", value: toNumber(item._sum.amount), color: author?.color ?? "#64748b" },
+      ] as const;
+    }),
+  );
 
-  const topTransactions = [...expenses].sort((a, b) => toNumber(b.amount) - toNumber(a.amount)).slice(0, 10);
-  const byCategory = new Map<string, { name: string; current: number; previous: number; color: string }>();
-  for (const item of expenses) {
-    const bucket = byCategory.get(item.categoryId) ?? { name: item.category.name, current: 0, previous: 0, color: item.category.color };
-    if (isSameMonth(item.date, new Date())) bucket.current += toNumber(item.amount);
-    else bucket.previous += toNumber(item.amount);
-    byCategory.set(item.categoryId, bucket);
-  }
-  const trends = [...byCategory.values()].sort((a, b) => b.current - a.current).slice(0, 8);
-  const forecast = new Date().getDate() ? (expenses.filter((item) => isSameMonth(item.date, new Date())).reduce((sum, item) => sum + toNumber(item.amount), 0) / new Date().getDate()) * new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() : 0;
+  const trends = trendRows
+    .map((item) => {
+      const category = categoryById.get(item.categoryId);
+      return {
+        name: category?.name ?? "Bez kategorii",
+        current: toNumber(item.current),
+        previous: toNumber(item.previous),
+        color: category?.color ?? "#64748b",
+      };
+    })
+    .sort((a, b) => b.current - a.current)
+    .slice(0, 8);
+  const currentMonthExpense = trendRows.reduce((sum, item) => sum + toNumber(item.current), 0);
+  const forecast = now.getDate() ? (currentMonthExpense / now.getDate()) * currentMonthTo.getDate() : 0;
 
   const heatmapCategories = commonNames.concat(["Jedzenie", "Transport", "Rozrywka"]);
-  const heatmapValues = new Map<string, number>();
-  for (const item of expenses) {
-    const key = `${getDay(item.date)}:${item.category.name}`;
-    heatmapValues.set(key, (heatmapValues.get(key) ?? 0) + toNumber(item.amount));
-  }
+  const heatmapValues = new Map(heatmapRows.map((item) => [`${Number(item.day)}:${item.categoryName}`, toNumber(item.value)]));
   const heatmap = Array.from({ length: 7 }, (_, day) => ({
     day,
     values: heatmapCategories.map((name) => heatmapValues.get(`${day}:${name}`) ?? 0),
