@@ -2,7 +2,7 @@
 
 Ta lista zbiera rzeczy do poprawy, rozbudowy i utwardzenia po pierwszym dzialajacym deployu aplikacji budzetowej.
 
-Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego household. SaaS, subskrypcje, multi-tenant, publiczny onboarding i landing page zostaja odlozone.
+Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego household. SaaS, subskrypcje, multi-tenant, publiczny onboarding, landing page oraz PSD2/Open Banking zostaja odlozone.
 
 ## Priorytet 0: rzeczy obowiazkowe przed regularnym uzywaniem
 
@@ -15,7 +15,9 @@ Aktualny zakres: prywatna wersja v1 dla dwoch uzytkownikow i jednego wspolnego h
 - [x] Dodac prosty ekran/status ostatniego backupu.
 - [x] Przejrzec dane seed i usunac/przerobic przykladowe transakcje, gdy zaczniecie uzywac aplikacji realnie.
 
-## Priorytet 1: integracja z realnymi wydatkami z konta
+## Priorytet 1: odlozone PSD2/Open Banking
+
+Status: odlozone na pozniej. W wersji prywatnej v1 realne dane wprowadzamy recznie albo przez import CSV. Fundament pod PSD2 zostaje w kodzie, ale nie rozwijamy teraz flow zgody, wyboru dostawcy ani pobierania transakcji z API bankowego.
 
 - [ ] Dodac integracje z realnymi transakcjami bankowymi.
 - [ ] Wybrac dostawce Open Banking / PSD2 dla Polski:
