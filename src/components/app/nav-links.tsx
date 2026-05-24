@@ -30,7 +30,7 @@ export function DesktopNavLinks() {
             key={item.href}
             href={item.href}
             className={cn(
-              "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-all duration-200 hover:bg-white/70 hover:text-slate-950 hover:shadow-sm dark:text-slate-300 dark:hover:bg-slate-900/80 dark:hover:text-white",
+              "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-all duration-200 hover:bg-white/70 hover:text-slate-950 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-slate-300 dark:hover:bg-slate-900/80 dark:hover:text-white dark:focus-visible:ring-offset-slate-950",
               active &&
                 "bg-slate-950 text-white shadow-[0_12px_30px_rgba(15,23,42,0.18)] hover:bg-slate-950 hover:text-white dark:bg-white dark:text-slate-950 dark:hover:bg-white dark:hover:text-slate-950",
             )}
@@ -64,7 +64,7 @@ export function MobileNavLinks() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg text-[10px] font-medium text-slate-500 transition-all duration-200 dark:text-slate-400",
+              "flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg text-[10px] font-medium text-slate-500 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/70 dark:text-slate-400",
               active && "bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950",
             )}
           >
